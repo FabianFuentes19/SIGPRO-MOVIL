@@ -1,0 +1,34 @@
+# Archivos de compilación (MUY pesados)
+.gradle/
+build/
+app/build/
+
+# Configuración local de tu PC (RUTA DEL SDK)
+local.properties
+
+# Archivos del editor
+.idea/
+*.iml
+.DS_Store
+
+# Archivos de log
+*.log
+
+# Archivos de firmas (Keystores) - NUNCA los subas si generas una versión real
+*.jks
+*.keystore
+
+# Archivos temporales de Android Studio y el Sistema Operativo
+captures/
+.externalNativeBuild/
+.cxx/
+.shelf/
+
+# Archivos donde se suelen guardar claves de API o URLs de servidor locales
+secrets.xml
+google-services.json 
+
+# Reportes de errores y resultados de pruebas locales
+/lint/results.xml
+/lint/intermediates/
+/androidTestResults/
