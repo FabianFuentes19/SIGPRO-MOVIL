@@ -1,6 +1,4 @@
 package com.sigpro.lider.api
-
-import com.sigpro.lider.BuildConfig
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
@@ -25,7 +23,7 @@ object ApiClient {
         .build()
 
     private val retrofit: Retrofit = Retrofit.Builder()
-        .baseUrl(BuildConfig.API_BASE_URL)
+        .baseUrl("http://10.0.2.2:8080/")
         .client(okHttpClient)
         .addConverterFactory(GsonConverterFactory.create())
         .build()
