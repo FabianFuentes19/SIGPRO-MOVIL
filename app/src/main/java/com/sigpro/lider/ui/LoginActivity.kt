@@ -1,0 +1,26 @@
+package com.sigpro.lider.ui
+
+import android.os.Bundle
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import com.sigpro.lider.ui.screens.LoginScreen
+
+/**
+ * Activity alternativa para login (útil si más adelante separas flujos).
+ * Actualmente muestra la misma pantalla Compose que el launcher.
+ */
+class LoginActivity : ComponentActivity() {
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContent {
+            MaterialTheme {
+                Surface {
+                    LoginScreen()
+                }
+            }
+        }
+    }
+}
+
