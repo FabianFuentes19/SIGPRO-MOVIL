@@ -2,7 +2,6 @@ package com.sigpro.lider
 
 import android.app.Application
 import android.content.Context
-import androidx.lifecycle.ViewModelProvider.NewInstanceFactory.Companion.instance
 
 class SigproLiderApp : Application() {
 
