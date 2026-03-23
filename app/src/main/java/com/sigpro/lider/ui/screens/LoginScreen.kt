@@ -51,6 +51,8 @@ import org.json.JSONObject
 private enum class AuthScreen {
     LOGIN,
     FORGOT_PASSWORD,
+    VERIFY_CODE,
+    RESET_PASSWORD,
 }
 
 @Composable
@@ -63,6 +65,16 @@ fun LoginScreen() {
         )
 
         AuthScreen.FORGOT_PASSWORD -> ForgotPasswordScreen(
+            onBackToLogin = { currentScreen = AuthScreen.LOGIN },
+            onGoToVerify = { currentScreen = AuthScreen.VERIFY_CODE },
+        )
+
+        AuthScreen.VERIFY_CODE -> VerifyCodeScreen(
+            onBackToForgot = { currentScreen = AuthScreen.FORGOT_PASSWORD },
+            onVerified = { currentScreen = AuthScreen.RESET_PASSWORD },
+        )
+
+        AuthScreen.RESET_PASSWORD -> ResetPasswordScreen(
             onBackToLogin = { currentScreen = AuthScreen.LOGIN },
         )
     }
@@ -107,7 +119,6 @@ private fun LoginContent(
                 .height(120.dp),
         )
 
-        // Textos (universidad)
         Text(
             text = "Universidad Tecnológica",
             color = utezBlue,
@@ -123,7 +134,6 @@ private fun LoginContent(
 
         Spacer(modifier = Modifier.height(4.dp))
 
-        // Textos de bienvenida (nuevos)
         Text(
             text = "Bienvenido",
             color = utezBlue,
