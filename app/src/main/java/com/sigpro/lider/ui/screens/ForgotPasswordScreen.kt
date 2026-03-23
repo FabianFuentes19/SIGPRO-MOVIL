@@ -40,6 +40,7 @@ import com.sigpro.lider.R
 @Composable
 fun ForgotPasswordScreen(
     onBackToLogin: () -> Unit,
+    onGoToVerify: () -> Unit,
 ) {
     val utezBlue = Color(0xFF00385F)
     val appBg = Color(0xFFF2F2F2)
@@ -113,7 +114,7 @@ fun ForgotPasswordScreen(
                 )
 
                 Button(
-                    onClick = { /* TODO: integrar endpoint de recuperación */ },
+                    onClick = onGoToVerify,
                     colors = ButtonDefaults.buttonColors(containerColor = utezBlue),
                     modifier = Modifier
                         .fillMaxWidth()
@@ -132,11 +133,13 @@ fun ForgotPasswordScreen(
         }
     }
 }
-
+/*
 @Preview(showBackground = true)
 @Composable
 fun ForgotPasswordPreview() {
     ForgotPasswordScreen(
-        onBackToLogin = {}
+        onBackToLogin = {},
+        onGoToVerify = {},
     )
 }
+ */
