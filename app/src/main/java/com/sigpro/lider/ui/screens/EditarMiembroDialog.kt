@@ -38,7 +38,6 @@ import androidx.compose.ui.window.Dialog
 
 @Composable
 fun EditarMiembroDialog(
-    // Datos precargados que recibe el modal
     nombrePre: String,
     matriculaPre: String,
     puestoPre: String,
@@ -47,15 +46,13 @@ fun EditarMiembroDialog(
     onDismiss: () -> Unit,
     onGuardar: () -> Unit
 ) {
-    // Los campos inician con los datos recibidos (Precarga)
     var nombre by remember { mutableStateOf(nombrePre) }
     var matricula by remember { mutableStateOf(matriculaPre) }
     var puesto by remember { mutableStateOf(puestoPre) }
     var salario by remember { mutableStateOf(salarioPre) }
     var rol by remember { mutableStateOf(rolPre) }
-    var contrasena by remember { mutableStateOf("123@") } // Valor por defecto
+    var contrasena by remember { mutableStateOf("123@") }
 
-    // Dropdowns (puedes ajustarlos igual)
     var cuatrimestre by remember { mutableStateOf("5") }
     var grupo by remember { mutableStateOf("B") }
     var carrera by remember { mutableStateOf("DS") }
@@ -92,8 +89,6 @@ fun EditarMiembroDialog(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(10.dp)
                 )
-
-                // ... (Aquí pones los Dropdowns y demás campos que ya tienes en el de Agregar) ...
 
                 Spacer(modifier = Modifier.height(12.dp))
                 CustomLabel("Rol")
@@ -140,14 +135,12 @@ fun EditarMiembroDialog(
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 fun EditarMiembroPreview() {
-    // Simulamos el fondo gris de la aplicación para resaltar el Dialog
     Box(
         modifier = Modifier
             .fillMaxSize()
             .background(Color(0xFFD1D5DB)),
         contentAlignment = Alignment.Center
     ) {
-        // Llamamos al diálogo con los datos precargados
         EditarMiembroDialog(
             nombrePre = "Marcos Ríos",
             matriculaPre = "20243DS010",
