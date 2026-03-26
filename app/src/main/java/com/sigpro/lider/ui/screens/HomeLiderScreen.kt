@@ -12,6 +12,10 @@ import androidx.compose.material.icons.filled.Payments
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.PersonAdd
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -25,6 +29,7 @@ import com.sigpro.lider.ui.theme.SigproTheme
 
 @Composable
 fun HomeLiderScreen() {
+    var showAgregarMiembroDialog by remember { mutableStateOf(false) }
     val azulMarino = Color(0xFF00334E)
     val doradoBoton = Color(0xFFA68238)
 
@@ -95,7 +100,7 @@ fun HomeLiderScreen() {
                     )
 
                     Button(
-                        onClick = { /* Abrir formulario */ },
+                        onClick = { showAgregarMiembroDialog = true },
                         colors = ButtonDefaults.buttonColors(backgroundColor = doradoBoton),
                         shape = RoundedCornerShape(24.dp),
                         elevation = ButtonDefaults.elevation(defaultElevation = 2.dp),
@@ -136,6 +141,15 @@ fun HomeLiderScreen() {
 
             item { Spacer(modifier = Modifier.height(16.dp)) }
         }
+    }
+    if (showAgregarMiembroDialog) {
+        AgregarMiembroDialog(
+            onDismiss = { showAgregarMiembroDialog = false },
+            onGuardar = {
+                println("Guardando miembro...")
+                showAgregarMiembroDialog = false
+            }
+        )
     }
 }
 
