@@ -29,7 +29,23 @@ import com.sigpro.lider.ui.theme.SigproTheme
 
 @Composable
 fun HomeLiderScreen() {
+    var showEditarDialog by remember { mutableStateOf(false) }
+    var miembroSeleccionado by remember { mutableStateOf("") }
     var showAgregarMiembroDialog by remember { mutableStateOf(false) }
+    var showEliminarMiembroDialog by remember { mutableStateOf(false) }
+    var showConsultarMiembroDialog by remember { mutableStateOf(false) }
+    var showHistorialMiembroDialog by remember { mutableStateOf(false) }
+
+    //Datos prueba para historial
+    val pagosDePrueba = listOf(
+        Pago("11 DE FEB, 2026", "$15,000.00"),
+        Pago("28 DE ENE, 2026", "$15,000.00"),
+        Pago("14 DE ENE, 2026", "$15,000.00"),
+        Pago("31 DE DIC, 2025", "$15,000.00"),
+        Pago("17 DE DIC, 2025", "$15,000.00"),
+        Pago("03 DE DIC, 2025", "$15,000.00")
+    )
+
     val azulMarino = Color(0xFF00334E)
     val doradoBoton = Color(0xFFA68238)
 
@@ -131,10 +147,22 @@ fun HomeLiderScreen() {
                 MiembroItem(
                     nombre = nombre,
                     rol = "Diseñador",
-                    onEditar = { },
-                    onBorrar = { },
-                    onDetalles = { },
-                    onHistorial = { }
+                    onEditar = {
+                        miembroSeleccionado = nombre
+                        showEditarDialog = true
+                    },
+                    onBorrar = {
+                        miembroSeleccionado = nombre
+                        showEliminarMiembroDialog = true
+                    },
+                    onDetalles = {
+                        miembroSeleccionado = nombre
+                        showConsultarMiembroDialog = true
+                    },
+                    onHistorial = {
+                        miembroSeleccionado = nombre
+                        showHistorialMiembroDialog = true
+                    }
                 )
                 Spacer(modifier = Modifier.height(12.dp))
             }
@@ -151,7 +179,73 @@ fun HomeLiderScreen() {
             }
         )
     }
+
+    // Diálogo de Edición
+    if (showEditarDialog) {
+        EditarMiembroDialog(
+            nombrePre = miembroSeleccionado,
+            matriculaPre = "20243ds001",    // Datos de ejemplo
+            cuatriPre = "5",
+            grupoPre = "B",
+            carreraPre = "DS",
+            contrasenaPre = "123@",
+            rolPre = "Miembro",
+            puestoPre = "Programador",
+            salarioPre = "15,000.00",
+            fechaPre = "04/02/2026",
+            onDismiss = { showEditarDialog = false },
+            onGuardar = {
+                showEditarDialog = false
+            }
+        )
+    }
+
+    //Dialogo de eliminar
+    if (showEliminarMiembroDialog) {
+        EliminarMiembroDialog(
+            nombre = miembroSeleccionado,
+            matricula = "20213UT0045",
+            onDismiss = {
+                showEliminarMiembroDialog = false
+            },
+            onConfirmarEliminar = {
+                println("Eliminando a: $miembroSeleccionado")
+                showEliminarMiembroDialog = false
+
+            }
+        )
+    }
+
+    //Dialog de consultar
+    if (showConsultarMiembroDialog){
+        ConsultarMiembroDialog(
+            nombre = miembroSeleccionado,
+            matricula = "20243ds001",    // Datos de ejemplo
+            cuatrimestre = "5",
+            grupo = "B",
+            carrera = "DS",
+            puesto = "Programador",
+            salario = "15,000.00",
+            fechaIngreso = "04/02/2026",
+            onDismiss = {
+                showConsultarMiembroDialog = false
+            }
+        )
+    }
+
+    //Dialog historial miembro
+    if (showHistorialMiembroDialog){
+        HistorialMiembroDialog(
+            nombre = "Marcos Ortíz",
+            puesto = "Diseñador gráfico",
+            totalAcumulado = "$15,000.00",
+            listaPagos = pagosDePrueba,
+            onDismiss = { showHistorialMiembroDialog = false }
+        )
+    }
+
 }
+
 
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
