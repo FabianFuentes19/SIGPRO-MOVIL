@@ -1,17 +1,29 @@
 package com.sigpro.lider.ui
 
 import android.os.Bundle
+import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.material.MaterialTheme
+import androidx.compose.material.Surface
 import com.sigpro.lider.R
+import com.sigpro.lider.ui.screens.MaterialesScreen
+import com.sigpro.lider.ui.theme.SigproTheme
 
-/**
- * Actividad principal para el rol Líder (SIGPRO).
- * Punto de entrada de la aplicación.
- */
+
 class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
+        setContent {
+            SigproTheme {
+                Surface(color = MaterialTheme.colors.background) {
+
+                    MaterialesScreen(onBack = {
+                        finish()
+                    })
+
+                }
+            }
+        }
     }
 }
