@@ -16,6 +16,7 @@ android {
 
         // URL del backend (emulador: 10.0.2.2; dispositivo físico: IP de tu máquina)
         buildConfigField("String", "API_BASE_URL", "\"http://10.0.2.2:8080/\"")
+
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
         vectorDrawables {

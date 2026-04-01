@@ -12,6 +12,11 @@ import androidx.compose.material.Surface
 import com.sigpro.lider.R
 import com.sigpro.lider.ui.screens.PerfilLideresScreen
 import com.sigpro.lider.ui.theme.SigproTheme
+import androidx.compose.material.Surface
+import androidx.compose.material.MaterialTheme
+import com.sigpro.lider.ui.screens.HomeLiderScreen
+import com.sigpro.lider.ui.theme.SigproTheme // Importamos tu tema personalizado
+
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
