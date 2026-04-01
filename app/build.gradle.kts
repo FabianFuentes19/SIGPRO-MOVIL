@@ -13,7 +13,6 @@ android {
         targetSdk = 34
         versionCode = 1
         versionName = "1.0"
-
         // URL del backend (emulador: 10.0.2.2; dispositivo físico: IP de tu máquina)
         buildConfigField("String", "API_BASE_URL", "\"http://10.0.2.2:8080/\"")
 
