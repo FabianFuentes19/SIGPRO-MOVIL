@@ -1,4 +1,5 @@
 package com.sigpro.lider.ui.theme
+
 import androidx.compose.ui.graphics.Color
 
 val AzulPrimario = Color(0xFF003D61)

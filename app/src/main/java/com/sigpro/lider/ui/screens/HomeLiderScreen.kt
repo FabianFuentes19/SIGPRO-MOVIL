@@ -51,6 +51,7 @@ fun HomeLiderScreen() {
 
     Scaffold(
         backgroundColor = Color(0xFFF5F5F5),
+        // 1. BARRA SUPERIOR AZUL (TOP BAR)
         topBar = {
             TopAppBar(
                 title = { Text("") },
@@ -59,6 +60,7 @@ fun HomeLiderScreen() {
                 modifier = Modifier.height(60.dp)
             )
         },
+        // 2. BARRA DE NAVEGACIÓN INFERIOR (BOTTOM BAR)
         bottomBar = {
             BottomNavigation(
                 backgroundColor = azulMarino,
@@ -92,17 +94,18 @@ fun HomeLiderScreen() {
             item {
                 Spacer(modifier = Modifier.height(16.dp))
 
+                // Card del Proyecto (SIGPRO-MOVIL)
                 ProyectoCard(
                     nombre = "SIGPRO-MOVIL",
                     objetivo = "Sistema de gestión de recursos",
                     fechaInicio = "21/02/2026",
                     fechaFin = "29/04/2026",
                     presupuesto = "400,000",
-                    progreso = 0.65f
+                    progreso = 0.65f // Ajustado al 65% como en tu imagen
                 )
 
                 Spacer(modifier = Modifier.height(32.dp))
-
+                // 3. SECCIÓN DE MIEMBROS CON BOTÓN ALINEADO
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -163,6 +166,11 @@ fun HomeLiderScreen() {
                         miembroSeleccionado = nombre
                         showHistorialMiembroDialog = true
                     }
+                    rol = "Diseñador", // Cambiado a Diseñador como en tu dibujo
+                    onEditar = { },
+                    onBorrar = { },
+                    onDetalles = { },
+                    onHistorial = { }
                 )
                 Spacer(modifier = Modifier.height(12.dp))
             }

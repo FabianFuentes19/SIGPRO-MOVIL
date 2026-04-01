@@ -30,6 +30,7 @@ fun ProyectoCard(
         elevation = 4.dp
     ) {
         Column {
+            // Franja verde superior
             Box(
                 modifier = Modifier
                     .fillMaxWidth()

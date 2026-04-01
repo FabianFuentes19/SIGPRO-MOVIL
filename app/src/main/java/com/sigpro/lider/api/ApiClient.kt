@@ -57,4 +57,7 @@ object ApiClient {
         .build()
 
     val apiService: ApiService = retrofit.create(ApiService::class.java)
+    val materialService: MaterialService = retrofit.create(MaterialService::class.java)
+
 }
+
