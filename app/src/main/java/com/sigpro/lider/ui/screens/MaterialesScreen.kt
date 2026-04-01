@@ -17,44 +17,70 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.sigpro.lider.models.MaterialModel
 import com.sigpro.lider.ui.components.AgregarMaterialDialog
 import com.sigpro.lider.ui.theme.*
+import com.sigpro.lider.viewmodel.MaterialViewModel
+import java.text.NumberFormat
+import java.util.*
 
 @Composable
-fun MaterialesScreen(onBack: () -> Unit) {
+fun MaterialesScreen(
+    onBack: () -> Unit,
+    viewModel: MaterialViewModel = viewModel()
+) {
     var showAgregarDialog by remember { mutableStateOf(false) }
     var searchTexto by remember { mutableStateOf("") }
 
-    val fondoGris = GrisFondoApp
-    val azulPrimario = AzulPrimario
-    val verdeExito = VerdeExito
+    LaunchedEffect(Unit) {
+        viewModel.fetchMateriales(proyectoId = 1L)
+    }
 
     Scaffold(
-        backgroundColor = fondoGris,
+        backgroundColor = GrisFondoApp,
         topBar = {
             TopAppBar(
-                title = { Text("") },
+                title = { Text("Gestión de Materiales", color = BlancoPuro) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.Default.ArrowBack, contentDescription = "Regresar", tint = BlancoPuro)
                     }
                 },
-                backgroundColor = azulPrimario,
+                backgroundColor = AzulPrimario,
                 elevation = 0.dp
             )
         },
-
     ) { padding ->
+        if (viewModel.isLoading) {
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator(color = AzulPrimario)
+            }
+        }
+
         if (showAgregarDialog) {
             AgregarMaterialDialog(
                 onDismiss = { showAgregarDialog = false },
-                onRegistrar = { nombre, cantidad, precio ->
-                    // Aquí después conectarás a tu base de datos o ViewModel
-                    println("Registrando: $nombre, Cant: $cantidad, Precio: $precio")
-                    showAgregarDialog = false // Cerramos al terminar
+                onRegistrar = { nombre, cantStr, precioStr ->
+                    val cantInt = cantStr.toIntOrNull() ?: 0
+                    val precioDouble = precioStr.toDoubleOrNull() ?: 0.0
+
+                    if (nombre.isNotBlank() && cantInt > 0) {
+                        val nuevo = MaterialModel(
+                            nombre = nombre,
+                            cantidad = cantInt,
+                            monto = precioDouble,
+                            proyectoId = 1L
+                        )
+
+                        viewModel.registrarNuevoMaterial(nuevo) {
+                            showAgregarDialog = false
+                        }
+                    }
                 }
             )
         }
+
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -65,8 +91,8 @@ fun MaterialesScreen(onBack: () -> Unit) {
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween, // Separa el título del botón
-                verticalAlignment = Alignment.CenterVertically // Alínea el texto y el círculo
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
                     text = "Materiales",
@@ -77,15 +103,17 @@ fun MaterialesScreen(onBack: () -> Unit) {
 
                 FloatingActionButton(
                     onClick = { showAgregarDialog = true },
-                    backgroundColor = verdeExito,
+                    backgroundColor = VerdeExito,
                     contentColor = BlancoPuro,
-                    elevation = FloatingActionButtonDefaults.elevation(defaultElevation = 4.dp),
                     modifier = Modifier.size(56.dp)
                 ) {
                     Icon(Icons.Default.Add, contentDescription = "Agregar", modifier = Modifier.size(30.dp))
                 }
             }
+
             Spacer(modifier = Modifier.height(20.dp))
+
+            val totalCalculado = viewModel.listaMateriales.sumOf { (it.monto * it.cantidad) }
 
             Card(
                 shape = RoundedCornerShape(16.dp),
@@ -95,13 +123,13 @@ fun MaterialesScreen(onBack: () -> Unit) {
             ) {
                 Column(modifier = Modifier.padding(24.dp)) {
                     Text(
-                        text = "TOTAL DE MATERIAL:",
+                        text = "TOTAL EN MATERIALES:",
                         fontSize = 12.sp,
                         color = GrisTextoSecundario,
                         fontWeight = FontWeight.Bold
                     )
                     Text(
-                        text = "$12,500.00",
+                        text = formatCurrency(totalCalculado),
                         fontSize = 32.sp,
                         color = NegroTexto,
                         fontWeight = FontWeight.Bold
@@ -121,23 +149,26 @@ fun MaterialesScreen(onBack: () -> Unit) {
                 colors = TextFieldDefaults.outlinedTextFieldColors(
                     backgroundColor = BlancoPuro,
                     unfocusedBorderColor = Color.Transparent,
-                    focusedBorderColor = azulPrimario
+                    focusedBorderColor = AzulPrimario
                 )
             )
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            val listaMateriales = listOf(
-                MaterialData("Acuarelas", "4 pz", "$320.00"),
-                MaterialData("Pinceles Óleo", "12 pz", "$546.00"),
-                MaterialData("Lienzo 40x60", "2 pz", "$240.00"),
-                MaterialData("Barniz Mate", "5 pz", "$1,050.00"),
-                MaterialData("Espátulas Metálicas", "3 pz", "$225.00"),
-                MaterialData("Gesso Blanco", "1 pz", "$180.00")
-            )
+            val listaFiltrada = viewModel.listaMateriales.filter {
+                it.nombre.contains(searchTexto, ignoreCase = true)
+            }
+
+            if (listaFiltrada.isEmpty() && !viewModel.isLoading) {
+                Text(
+                    text = "No hay materiales registrados.",
+                    modifier = Modifier.align(Alignment.CenterHorizontally),
+                    color = GrisTextoSecundario
+                )
+            }
 
             LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                items(listaMateriales) { material ->
+                items(listaFiltrada) { material ->
                     CardMaterialItem(material)
                 }
                 item { Spacer(modifier = Modifier.height(80.dp)) }
@@ -147,7 +178,7 @@ fun MaterialesScreen(onBack: () -> Unit) {
 }
 
 @Composable
-fun CardMaterialItem(material: MaterialData) {
+fun CardMaterialItem(material: MaterialModel) {
     Card(
         shape = RoundedCornerShape(12.dp),
         elevation = 1.dp,
@@ -160,24 +191,29 @@ fun CardMaterialItem(material: MaterialData) {
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Column {
-                Text(text = material.nombre, fontWeight = FontWeight.Bold, fontSize = 16.sp, color = NegroTexto)
-                Text(text = material.cantidad, fontSize = 12.sp, color = GrisTextoSecundario)
+                Text(
+                    text = material.nombre,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 16.sp,
+                    color = NegroTexto
+                )
+                Text(
+                    text = "${material.cantidad} unidades",
+                    fontSize = 12.sp,
+                    color = GrisTextoSecundario
+                )
             }
-            Text(text = material.precio, fontWeight = FontWeight.Bold, fontSize = 16.sp, color = NegroTexto)
+            Text(
+                text = formatCurrency(material.monto),
+                fontWeight = FontWeight.Bold,
+                fontSize = 16.sp,
+                color = NegroTexto
+            )
         }
     }
 }
 
-data class MaterialData(val nombre: String, val cantidad: String, val precio: String)
-@Preview(
-    showBackground = true,
-    showSystemUi = true,
-    name = "Vista Previa Materiales"
-)
-@Composable
-fun MaterialesPreview() {
-    SigproTheme {
-        MaterialesScreen {
-        }
-    }
+fun formatCurrency(amount: Double): String {
+    val format = NumberFormat.getCurrencyInstance(Locale("es", "MX"))
+    return format.format(amount)
 }

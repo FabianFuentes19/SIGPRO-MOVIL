@@ -25,6 +25,8 @@ fun AgregarMaterialDialog(
     var cantidad by remember { mutableStateOf("") }
     var precio by remember { mutableStateOf("") }
 
+    var errorVisible by remember { mutableStateOf(false) }
+
     Dialog(onDismissRequest = onDismiss) {
         Surface(
             shape = RoundedCornerShape(16.dp),
@@ -37,48 +39,67 @@ fun AgregarMaterialDialog(
             ) {
                 Text(
                     text = "Agregar material",
-                    fontSize = 20.sp,
+                    fontSize = 22.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color.Black
+                    color = NegroTexto
                 )
 
                 Spacer(modifier = Modifier.height(24.dp))
 
-                // Campo: Material
-                CustomLabelField(label = "Material *", value = nombre, placeholder = "Ej. Acuarelas") { nombre = it }
+                CustomLabelField(
+                    label = "Nombre del Material *",
+                    value = nombre,
+                    placeholder = "Ej. Cemento Tolteca"
+                ) {
+                    nombre = it
+                    errorVisible = false
+                }
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Fila: Cantidad y Precio
                 Row(modifier = Modifier.fillMaxWidth()) {
                     Column(modifier = Modifier.weight(1f)) {
                         CustomLabelField(
                             label = "Cantidad *",
                             value = cantidad,
-                            placeholder = "Ej. 3",
+                            placeholder = "Ej. 10",
                             isNumber = true
-                        ) { cantidad = it }
+                        ) {
+                            cantidad = it
+                            errorVisible = false
+                        }
                     }
                     Spacer(modifier = Modifier.width(16.dp))
                     Column(modifier = Modifier.weight(1f)) {
                         CustomLabelField(
-                            label = "Precio *",
+                            label = "Precio Unitario *",
                             value = precio,
-                            placeholder = "Ej. $50.00",
+                            placeholder = "Ej. 150.00",
                             isNumber = true
-                        ) { precio = it }
+                        ) {
+                            precio = it
+                            errorVisible = false
+                        }
                     }
+                }
+
+                if (errorVisible) {
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = "Todos los campos con * son obligatorios",
+                        color = Color.Red,
+                        fontSize = 12.sp
+                    )
                 }
 
                 Spacer(modifier = Modifier.height(32.dp))
 
-                // Botones: Cancelar y Registrar
                 Row(modifier = Modifier.fillMaxWidth()) {
                     OutlinedButton(
                         onClick = onDismiss,
-                        modifier = Modifier.weight(1f).height(48.dp),
-                        shape = RoundedCornerShape(10.dp),
-                        border = BorderStroke(1.dp, VerdeExito)
+                        modifier = Modifier.weight(1f).height(50.dp),
+                        shape = RoundedCornerShape(12.dp),
+                        border = BorderStroke(1.5.dp, VerdeExito)
                     ) {
                         Text("Cancelar", color = VerdeExito, fontWeight = FontWeight.Bold)
                     }
@@ -86,9 +107,15 @@ fun AgregarMaterialDialog(
                     Spacer(modifier = Modifier.width(12.dp))
 
                     Button(
-                        onClick = { onRegistrar(nombre, cantidad, precio) },
-                        modifier = Modifier.weight(1f).height(48.dp),
-                        shape = RoundedCornerShape(10.dp),
+                        onClick = {
+                            if (nombre.isNotBlank() && cantidad.isNotBlank() && precio.isNotBlank()) {
+                                onRegistrar(nombre, cantidad, precio)
+                            } else {
+                                errorVisible = true
+                            }
+                        },
+                        modifier = Modifier.weight(1f).height(50.dp),
+                        shape = RoundedCornerShape(12.dp),
                         colors = ButtonDefaults.buttonColors(backgroundColor = VerdeExito)
                     ) {
                         Text("Registrar", color = BlancoPuro, fontWeight = FontWeight.Bold)
@@ -108,19 +135,25 @@ fun CustomLabelField(
     onValueChange: (String) -> Unit
 ) {
     Column(modifier = Modifier.fillMaxWidth()) {
-        Text(text = label, fontSize = 12.sp, color = GrisTextoSecundario, fontWeight = FontWeight.Medium)
+        Text(
+            text = label,
+            fontSize = 13.sp,
+            color = GrisTextoSecundario,
+            fontWeight = FontWeight.SemiBold
+        )
         Spacer(modifier = Modifier.height(6.dp))
         OutlinedTextField(
             value = value,
             onValueChange = onValueChange,
-            placeholder = { Text(placeholder, fontSize = 13.sp, color = Color.LightGray) },
-            modifier = Modifier.fillMaxWidth().height(50.dp),
-            shape = RoundedCornerShape(8.dp),
+            placeholder = { Text(placeholder, fontSize = 14.sp, color = Color.Gray.copy(0.5f)) },
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(10.dp),
             singleLine = true,
-            keyboardOptions = if (isNumber) KeyboardOptions(keyboardType = KeyboardType.Number) else KeyboardOptions.Default,
+            keyboardOptions = if (isNumber) KeyboardOptions(keyboardType = KeyboardType.Decimal) else KeyboardOptions.Default,
             colors = TextFieldDefaults.outlinedTextFieldColors(
                 focusedBorderColor = AzulPrimario,
-                unfocusedBorderColor = Color(0xFFE0E0E0)
+                unfocusedBorderColor = Color(0xFFD1D1D1),
+                backgroundColor = Color(0xFFF9F9F9) // Un toque de gris muy tenue para que se vea moderno
             )
         )
     }
