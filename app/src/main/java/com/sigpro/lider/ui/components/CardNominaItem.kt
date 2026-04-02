@@ -22,7 +22,6 @@ fun CardNominaItem(
     nomina: NominaData,
     onPagarClick: () -> Unit
 ) {
-    // Colores dinámicos según el estado isPagado
     val fondoCard = BlancoPuro
     val colorTextoPrincipal = if (nomina.isPagado) Color(0xFF9E9E9E) else NegroTexto
     val colorTextoSecundario = if (nomina.isPagado) Color(0xFFBDBDBD) else GrisTextoSecundario
@@ -35,7 +34,6 @@ fun CardNominaItem(
         modifier = Modifier.fillMaxWidth()
     ) {
         Column(modifier = Modifier.padding(20.dp)) {
-            // Fila 1: Nombre y No. Voucher
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                 Column {
                     Text(text = nomina.nombre, fontWeight = FontWeight.Bold, fontSize = 18.sp, color = colorTextoPrincipal)
@@ -51,7 +49,6 @@ fun CardNominaItem(
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            // Fila 2: Total y Badge de Estado
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -67,7 +64,6 @@ fun CardNominaItem(
                     Text(text = nomina.monto, fontSize = 28.sp, fontWeight = FontWeight.Bold, color = colorMonto)
                 }
 
-                // Badge de Estado (Amarillo Pendiente / Gris Pagado)
                 val badgeColor = if (nomina.isPagado) Color(0xFFE0E0E0) else Color(0xFFFFFDE7)
                 val badgeTextColor = if (nomina.isPagado) Color(0xFF616161) else Color(0xFFFBC02D)
 
@@ -85,7 +81,6 @@ fun CardNominaItem(
                 }
             }
 
-            // Fecha debajo del Badge
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
                 Icon(Icons.Outlined.CalendarToday, contentDescription = null, tint = colorTextoSecundario, modifier = Modifier.size(14.dp))
                 Spacer(modifier = Modifier.width(4.dp))
@@ -94,7 +89,6 @@ fun CardNominaItem(
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            // --- BOTÓN O MENSAJE DE ÉXITO ---
             if (!nomina.isPagado) {
                 Button(
                     onClick = onPagarClick,

@@ -17,11 +17,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
 import com.sigpro.lider.ui.components.AgregarMaterialDialog
 import com.sigpro.lider.ui.theme.*
 
 @Composable
-fun MaterialesScreen(onBack: () -> Unit) {
+fun MaterialesScreen(navController: NavController) {
     var showAgregarDialog by remember { mutableStateOf(false) }
     var searchTexto by remember { mutableStateOf("") }
 
@@ -35,7 +36,7 @@ fun MaterialesScreen(onBack: () -> Unit) {
             TopAppBar(
                 title = { Text("") },
                 navigationIcon = {
-                    IconButton(onClick = onBack) {
+                    IconButton(onClick = { navController.popBackStack() }) { // <--- Agregué las llaves { }
                         Icon(Icons.Default.ArrowBack, contentDescription = "Regresar", tint = BlancoPuro)
                     }
                 },
@@ -49,9 +50,8 @@ fun MaterialesScreen(onBack: () -> Unit) {
             AgregarMaterialDialog(
                 onDismiss = { showAgregarDialog = false },
                 onRegistrar = { nombre, cantidad, precio ->
-                    // Aquí después conectarás a tu base de datos o ViewModel
                     println("Registrando: $nombre, Cant: $cantidad, Precio: $precio")
-                    showAgregarDialog = false // Cerramos al terminar
+                    showAgregarDialog = false
                 }
             )
         }
@@ -65,8 +65,8 @@ fun MaterialesScreen(onBack: () -> Unit) {
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween, // Separa el título del botón
-                verticalAlignment = Alignment.CenterVertically // Alínea el texto y el círculo
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
                     text = "Materiales",
@@ -169,7 +169,8 @@ fun CardMaterialItem(material: MaterialData) {
 }
 
 data class MaterialData(val nombre: String, val cantidad: String, val precio: String)
-@Preview(
+
+/*@Preview(
     showBackground = true,
     showSystemUi = true,
     name = "Vista Previa Materiales"
@@ -180,4 +181,4 @@ fun MaterialesPreview() {
         MaterialesScreen {
         }
     }
-}
+}*/

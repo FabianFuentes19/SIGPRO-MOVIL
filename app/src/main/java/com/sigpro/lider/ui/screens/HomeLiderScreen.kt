@@ -1,6 +1,5 @@
 package com.sigpro.lider.ui.screens
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -23,12 +22,19 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
+import androidx.navigation.compose.currentBackStackEntryAsState
 import com.sigpro.lider.ui.components.ProyectoCard
 import com.sigpro.lider.ui.components.MiembroItem
+import com.sigpro.lider.ui.theme.AzulPrimario
+import com.sigpro.lider.ui.theme.BlancoPuro
 import com.sigpro.lider.ui.theme.SigproTheme
 
 @Composable
-fun HomeLiderScreen() {
+fun HomeLiderScreen(navController: NavController) {
+
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val currentRoute = navBackStackEntry?.destination?.route
     var showEditarDialog by remember { mutableStateOf(false) }
     var miembroSeleccionado by remember { mutableStateOf("") }
     var showAgregarMiembroDialog by remember { mutableStateOf(false) }
@@ -51,16 +57,12 @@ fun HomeLiderScreen() {
 
     Scaffold(
         backgroundColor = Color(0xFFF5F5F5),
-        // 1. BARRA SUPERIOR AZUL (TOP BAR)
         topBar = {
             TopAppBar(
-                title = { Text("") },
-                backgroundColor = azulMarino,
-                elevation = 0.dp,
-                modifier = Modifier.height(60.dp)
+                title = { Text("Inicio", color = BlancoPuro, fontWeight = FontWeight.Bold) },
+                backgroundColor = AzulPrimario
             )
         },
-        // 2. BARRA DE NAVEGACIÓN INFERIOR (BOTTOM BAR)
         bottomBar = {
             BottomNavigation(
                 backgroundColor = azulMarino,
@@ -68,19 +70,49 @@ fun HomeLiderScreen() {
                 elevation = 8.dp
             ) {
                 BottomNavigationItem(
-                    icon = { Icon(Icons.Default.Home, contentDescription = "Inicio", modifier = Modifier.size(30.dp)) },
-                    selected = true,
-                    onClick = { /* Navegación */ }
+                    icon = { Icon(Icons.Default.Home, contentDescription = null, modifier = Modifier.size(24.dp)) },
+                    label = { Text(text = "Inicio", fontSize = 12.sp) },
+                    selected = currentRoute == "home",
+                    onClick = {
+                        if (currentRoute != "home") {
+                            navController.navigate("home") {
+                                popUpTo("home") { saveState = true }
+                                launchSingleTop = true
+                                restoreState = true
+                            }
+                        }
+                    },
+                    alwaysShowLabel = true
                 )
+
                 BottomNavigationItem(
-                    icon = { Icon(Icons.Default.Payments, contentDescription = "Finanzas", modifier = Modifier.size(30.dp)) },
-                    selected = false,
-                    onClick = { /* Navegación */ }
+                    icon = { Icon(Icons.Default.Payments, contentDescription = null, modifier = Modifier.size(24.dp)) },
+                    label = { Text(text = "Nóminas", fontSize = 12.sp) },
+                    selected = currentRoute == "nominas",
+                    onClick = {
+                        if (currentRoute != "nominas") {
+                            navController.navigate("nominas") {
+                                launchSingleTop = true
+                                restoreState = true
+                            }
+                        }
+                    },
+                    alwaysShowLabel = true
                 )
+
                 BottomNavigationItem(
-                    icon = { Icon(Icons.Default.Person, contentDescription = "Perfil", modifier = Modifier.size(30.dp)) },
-                    selected = false,
-                    onClick = { /* Navegación */ }
+                    icon = { Icon(Icons.Default.Person, contentDescription = null, modifier = Modifier.size(24.dp)) },
+                    label = { Text(text = "Perfil", fontSize = 12.sp) },
+                    selected = currentRoute == "perfil",
+                    onClick = {
+                        if (currentRoute != "perfil") {
+                            navController.navigate("perfil") {
+                                launchSingleTop = true
+                                restoreState = true
+                            }
+                        }
+                    },
+                    alwaysShowLabel = true
                 )
             }
         }
@@ -94,18 +126,20 @@ fun HomeLiderScreen() {
             item {
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Card del Proyecto (SIGPRO-MOVIL)
                 ProyectoCard(
                     nombre = "SIGPRO-MOVIL",
                     objetivo = "Sistema de gestión de recursos",
                     fechaInicio = "21/02/2026",
                     fechaFin = "29/04/2026",
                     presupuesto = "400,000",
-                    progreso = 0.65f // Ajustado al 65% como en tu imagen
+                    progreso = 0.65f,
+                    onClick = {
+                        navController.navigate("materiales")
+                    }
                 )
 
                 Spacer(modifier = Modifier.height(32.dp))
-                // 3. SECCIÓN DE MIEMBROS CON BOTÓN ALINEADO
+
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -166,11 +200,6 @@ fun HomeLiderScreen() {
                         miembroSeleccionado = nombre
                         showHistorialMiembroDialog = true
                     }
-                    rol = "Diseñador", // Cambiado a Diseñador como en tu dibujo
-                    onEditar = { },
-                    onBorrar = { },
-                    onDetalles = { },
-                    onHistorial = { }
                 )
                 Spacer(modifier = Modifier.height(12.dp))
             }
@@ -254,11 +283,11 @@ fun HomeLiderScreen() {
 
 }
 
-
+/*
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 fun HomeLiderPreview() {
     SigproTheme {
         HomeLiderScreen()
     }
-}
+}*/

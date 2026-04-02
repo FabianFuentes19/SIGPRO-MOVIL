@@ -3,8 +3,7 @@ package com.sigpro.lider.ui.components
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.* // Importa Material 2
-import androidx.compose.runtime.Composable
+import androidx.compose.material.* import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -12,6 +11,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
+@OptIn(ExperimentalMaterialApi::class) // 1. Necesario para usar onClick en Surface de Material 2
 @Composable
 fun ProyectoCard(
     nombre: String,
@@ -19,9 +19,11 @@ fun ProyectoCard(
     fechaInicio: String,
     fechaFin: String,
     presupuesto: String,
-    progreso: Float
+    progreso: Float,
+    onClick: () -> Unit
 ) {
     Surface(
+        onClick = onClick,
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 8.dp),
@@ -30,7 +32,7 @@ fun ProyectoCard(
         elevation = 4.dp
     ) {
         Column {
-            // Franja verde superior
+
             Box(
                 modifier = Modifier
                     .fillMaxWidth()

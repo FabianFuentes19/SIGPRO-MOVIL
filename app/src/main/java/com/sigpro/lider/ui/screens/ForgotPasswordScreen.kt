@@ -1,38 +1,16 @@
 package com.sigpro.lider.ui.screens
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.sigpro.lider.R
@@ -42,12 +20,14 @@ fun ForgotPasswordScreen(
     onBackToLogin: () -> Unit,
     onGoToVerify: () -> Unit,
 ) {
-    val utezBlue = Color(0xFF00385F)
+    val azulUtez = Color(0xFF00385F)
     val appBg = Color(0xFFF2F2F2)
+    val grisCampo = Color(0xFFF7F8F9)
     val cardShape = RoundedCornerShape(16.dp)
-    val fieldBg = Color(0xFFF0F0F0)
 
     var usuario by remember { mutableStateOf("") }
+    // Agregamos un estado para error visual
+    var isError by remember { mutableStateOf(false) }
 
     Box(
         modifier = Modifier
@@ -58,18 +38,19 @@ fun ForgotPasswordScreen(
     ) {
         Card(
             shape = cardShape,
-            colors = CardDefaults.cardColors(containerColor = Color.White),
-            elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
-            modifier = Modifier.fillMaxWidth(),
+            backgroundColor = Color.White,
+            elevation = 4.dp,
+            modifier = Modifier.fillMaxWidth()
         ) {
             Column(
-                modifier = Modifier.padding(20.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
+                modifier = Modifier.padding(vertical = 32.dp, horizontal = 24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 Text(
                     text = "¿Olvidaste tu contraseña?",
-                    color = utezBlue,
-                    fontSize = 20.sp,
+                    color = azulUtez,
+                    fontSize = 26.sp,
                     fontWeight = FontWeight.Bold,
                     textAlign = TextAlign.Center,
                     modifier = Modifier.fillMaxWidth()
@@ -77,69 +58,86 @@ fun ForgotPasswordScreen(
 
                 Text(
                     text = "Ingresa tu matricula para recibir las instrucciones de recuperación de contraseña",
+                    color = Color.Gray,
+                    fontSize = 15.sp,
+                    textAlign = TextAlign.Center,
+                    lineHeight = 20.sp,
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp)
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Text(
+                    text = "Matricula *",
                     color = Color.DarkGray,
                     fontSize = 14.sp,
-                    textAlign = TextAlign.Center,
+                    fontWeight = FontWeight.SemiBold,
                     modifier = Modifier.fillMaxWidth()
                 )
 
-                Spacer(modifier = Modifier.height(1.dp))
-                Text(
-                    text = "Matricula:*",
-                    color = utezBlue,
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Medium
-                )
                 OutlinedTextField(
                     value = usuario,
-                    onValueChange = { usuario = it },
-                    placeholder = { Text("ej. 20243ds047") },
+                    onValueChange = {
+                        usuario = it
+                        isError = false
+                    },
+                    placeholder = { Text("20243ds047", color = Color.LightGray) },
                     singleLine = true,
+                    isError = isError,
                     leadingIcon = {
-                        Image(
+                        Icon(
                             painter = painterResource(id = R.drawable.icon_user),
-                            contentDescription = "Icono usuario",
-                            modifier = Modifier.size(24.dp),
+                            contentDescription = null,
+                            modifier = Modifier.size(20.dp),
+                            tint = if (isError) Color.Red else Color.Gray
                         )
                     },
-                    shape = RoundedCornerShape(14.dp),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedContainerColor = fieldBg,
-                        unfocusedContainerColor = fieldBg,
-                        disabledContainerColor = fieldBg,
-                        focusedBorderColor = utezBlue,
-                        unfocusedBorderColor = Color.Transparent,
+                    shape = RoundedCornerShape(12.dp),
+                    colors = TextFieldDefaults.outlinedTextFieldColors(
+                        backgroundColor = grisCampo,
+                        unfocusedBorderColor = if (isError) Color.Red else Color(0xFFE0E0E0),
+                        focusedBorderColor = azulUtez,
+                        cursorColor = azulUtez
                     ),
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier.fillMaxWidth()
                 )
 
+                Spacer(modifier = Modifier.height(8.dp))
+
                 Button(
-                    onClick = onGoToVerify,
-                    colors = ButtonDefaults.buttonColors(containerColor = utezBlue),
+                    onClick = {
+                        if (usuario.isNotBlank()) {
+                            onGoToVerify()
+                        } else {
+                            isError = true
+                        }
+                    },
+                    colors = ButtonDefaults.buttonColors(backgroundColor = azulUtez),
+                    shape = RoundedCornerShape(12.dp),
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(48.dp),
+                        .height(55.dp)
                 ) {
-                    Text("Enviar instrucciones", color = Color.White)
+                    Text(
+                        text = "Enviar instrucciones",
+                        color = Color.White,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 16.sp
+                    )
                 }
 
                 TextButton(
                     onClick = onBackToLogin,
-                    modifier = Modifier.align(Alignment.CenterHorizontally),
+                    modifier = Modifier.padding(top = 4.dp)
                 ) {
-                    Text("Regresar al inicio de sesión", color = utezBlue)
+                    Text(
+                        text = "Regresar al inicio de sesión",
+                        color = azulUtez,
+                        fontWeight = FontWeight.SemiBold,
+                        fontSize = 14.sp
+                    )
                 }
             }
         }
     }
 }
-/*
-@Preview(showBackground = true)
-@Composable
-fun ForgotPasswordPreview() {
-    ForgotPasswordScreen(
-        onBackToLogin = {},
-        onGoToVerify = {},
-    )
-}
- */

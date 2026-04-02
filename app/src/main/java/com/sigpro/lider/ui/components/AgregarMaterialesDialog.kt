@@ -153,7 +153,7 @@ fun CustomLabelField(
             colors = TextFieldDefaults.outlinedTextFieldColors(
                 focusedBorderColor = AzulPrimario,
                 unfocusedBorderColor = Color(0xFFD1D1D1),
-                backgroundColor = Color(0xFFF9F9F9) // Un toque de gris muy tenue para que se vea moderno
+                backgroundColor = Color(0xFFF9F9F9)
             )
         )
     }

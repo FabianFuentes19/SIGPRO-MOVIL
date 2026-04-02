@@ -46,7 +46,6 @@ import androidx.compose.ui.window.Dialog
 @OptIn(ExperimentalMaterialApi::class, ExperimentalMaterialApi::class)
 @Composable
 fun EditarMiembroDialog(
-    // Parámetros de precarga (los que usaremos para conectar al Back-end después)
     nombrePre: String,
     matriculaPre: String,
     cuatriPre: String,
@@ -60,7 +59,6 @@ fun EditarMiembroDialog(
     onDismiss: () -> Unit,
     onGuardar: () -> Unit
 ) {
-    // Estados inicializados con la información precargada
     var nombre by remember { mutableStateOf(nombrePre) }
     var matricula by remember { mutableStateOf(matriculaPre) }
     var contrasena by remember { mutableStateOf(contrasenaPre) }
@@ -69,7 +67,6 @@ fun EditarMiembroDialog(
     var salario by remember { mutableStateOf(salarioPre) }
     var fechaIngreso by remember { mutableStateOf(fechaPre) }
 
-    // Estados para Dropdowns precargados
     var cuatrimestre by remember { mutableStateOf(cuatriPre) }
     var grupo by remember { mutableStateOf(grupoPre) }
     var carrera by remember { mutableStateOf(carreraPre) }
@@ -104,7 +101,6 @@ fun EditarMiembroDialog(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // --- Nombre y Matrícula ---
                 CustomLabel("Nombre completo")
                 OutlinedTextField(value = nombre, onValueChange = { nombre = it }, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(10.dp))
 
@@ -115,7 +111,6 @@ fun EditarMiembroDialog(
 
                 Spacer(modifier = Modifier.height(12.dp))
 
-                // --- Dropdowns: Cuatri y Grupo ---
                 Row(modifier = Modifier.fillMaxWidth()) {
                     Column(modifier = Modifier.weight(1f)) {
                         CustomLabel("Cuatrimestre")
@@ -140,7 +135,6 @@ fun EditarMiembroDialog(
 
                 Spacer(modifier = Modifier.height(12.dp))
 
-                // --- Carrera ---
                 CustomLabel("Carrera")
                 ExposedDropdownMenuBox(expanded = expandedCarrera, onExpandedChange = { expandedCarrera = !expandedCarrera }, modifier = Modifier.fillMaxWidth()) {
                     OutlinedTextField(value = carrera, onValueChange = {}, readOnly = true, modifier = Modifier.fillMaxWidth(), trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedCarrera) }, shape = RoundedCornerShape(10.dp))
@@ -151,7 +145,6 @@ fun EditarMiembroDialog(
 
                 Spacer(modifier = Modifier.height(12.dp))
 
-                // --- Contraseña y Rol ---
                 CustomLabel("Contraseña")
                 OutlinedTextField(value = contrasena, onValueChange = { contrasena = it }, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(10.dp), visualTransformation = PasswordVisualTransformation())
 
@@ -162,13 +155,11 @@ fun EditarMiembroDialog(
 
                 Spacer(modifier = Modifier.height(12.dp))
 
-                // --- Puesto ---
                 CustomLabel("Puesto")
                 OutlinedTextField(value = puesto, onValueChange = { puesto = it }, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(10.dp))
 
                 Spacer(modifier = Modifier.height(12.dp))
 
-                // --- Salario y Fecha ---
                 Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                     Column(modifier = Modifier.weight(1f)) {
                         CustomLabel("Salario quincenal")

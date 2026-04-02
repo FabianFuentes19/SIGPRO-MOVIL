@@ -32,27 +32,26 @@ fun EliminarMiembroDialog(
 
     Dialog(onDismissRequest = onDismiss) {
         Surface(
-            shape = RoundedCornerShape(24.dp), // Esquinas bien redondeadas como en tu imagen
+            shape = RoundedCornerShape(24.dp),
             color = Color.White,
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(vertical = 10.dp),
-            elevation = 16.dp // Más elevación para el sombreado del dialog
+            elevation = 16.dp
         ) {
             Column(
                 modifier = Modifier
                     .padding(horizontal = 24.dp, vertical = 20.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                // --- ICONO DE ADVERTENCIA ---
                 Box(
                     modifier = Modifier
                         .size(72.dp)
-                        .background(color = rosaIconoFondo, shape = CircleShape), // Círculo rosa
+                        .background(color = rosaIconoFondo, shape = CircleShape),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
-                        imageVector = Icons.Default.WarningAmber, // Icono de triangulo con admiración
+                        imageVector = Icons.Default.WarningAmber,
                         contentDescription = "Advertencia",
                         tint = rojoAdvertencia,
                         modifier = Modifier.size(40.dp)
@@ -61,7 +60,6 @@ fun EliminarMiembroDialog(
 
                 Spacer(modifier = Modifier.height(24.dp))
 
-                // --- TÍTULO ---
                 Text(
                     text = "Eliminar miembro",
                     fontSize = 22.sp,
@@ -71,18 +69,16 @@ fun EliminarMiembroDialog(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // --- PREGUNTA ---
                 Text(
                     text = "¿Estás seguro de que deseas eliminar a este miembro?",
                     fontSize = 14.sp,
                     color = Color.Gray,
                     textAlign = androidx.compose.ui.text.style.TextAlign.Center,
-                    lineHeight = 20.sp // Espaciado entre lineas para mejor lectura
+                    lineHeight = 20.sp
                 )
 
                 Spacer(modifier = Modifier.height(24.dp))
 
-                // --- CAJA DE INFORMACIÓN DEL MIEMBRO ---
                 Surface(
                     color = grisFondoInfo,
                     shape = RoundedCornerShape(12.dp),
@@ -90,9 +86,8 @@ fun EliminarMiembroDialog(
                 ) {
                     Column(
                         modifier = Modifier.padding(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp) // Espacio uniforme entre filas
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        // Fila de Nombre
                         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                             Text(text = "Nombre", fontSize = 13.sp, color = Color.Gray)
                             Text(
@@ -102,7 +97,6 @@ fun EliminarMiembroDialog(
                                 color = azulMarino
                             )
                         }
-                        // Fila de Matrícula
                         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                             Text(text = "Matrícula:", fontSize = 13.sp, color = Color.Gray)
                             Text(
@@ -117,37 +111,34 @@ fun EliminarMiembroDialog(
 
                 Spacer(modifier = Modifier.height(32.dp))
 
-                // --- BOTONES CANCELAR Y ELIMINAR ---
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    // Botón Cancelar (Gris con borde)
                     OutlinedButton(
                         onClick = onDismiss,
                         modifier = Modifier
                             .weight(1f)
                             .height(48.dp),
                         shape = RoundedCornerShape(10.dp),
-                        border = BorderStroke(1.dp, Color(0xFFD1D5DB)), // Gris clarito para el borde
-                        colors = ButtonDefaults.outlinedButtonColors(contentColor = azulMarino) // Texto azul marino
+                        border = BorderStroke(1.dp, Color(0xFFD1D5DB)),
+                        colors = ButtonDefaults.outlinedButtonColors(contentColor = azulMarino)
                     ) {
                         Text("Cancelar", fontWeight = FontWeight.Medium)
                     }
 
                     Spacer(modifier = Modifier.width(16.dp))
 
-                    // Botón Eliminar (Rojo sólido)
                     Button(
                         onClick = {
-                            onConfirmarEliminar() // Ejecuta la lógica para borrar
+                            onConfirmarEliminar()
                         },
                         modifier = Modifier
                             .weight(1f)
                             .height(48.dp),
                         shape = RoundedCornerShape(10.dp),
-                        colors = ButtonDefaults.buttonColors(backgroundColor = rojoAdvertencia), // Fondo Rojo
-                        elevation = ButtonDefaults.elevation(defaultElevation = 0.dp) // Sin elevación para un look plano
+                        colors = ButtonDefaults.buttonColors(backgroundColor = rojoAdvertencia),
+                        elevation = ButtonDefaults.elevation(defaultElevation = 0.dp)
                     ) {
                         Text(
                             text = "Eliminar",
@@ -164,23 +155,19 @@ fun EliminarMiembroDialog(
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 fun EliminarMiembroPreview() {
-    // Simulamos el fondo oscuro de la aplicación para resaltar el Dialog blanco encima,
-    // tal como en la captura de pantalla que me mostraste.
+
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFF1F2937)), // Un gris muy oscuro
+            .background(Color(0xFF1F2937)),
         contentAlignment = Alignment.Center
     ) {
-        // Llamamos al diálogo con los datos de Juan Pérez
         EliminarMiembroDialog(
             nombre = "Juan Pérez García",
             matricula = "20213UT0045",
             onDismiss = {
-                // Esta función se ejecutaría al dar clic en 'Cancelar' o fuera del diálogo
             },
             onConfirmarEliminar = {
-                // Esta función se ejecutaría al dar clic en 'Eliminar'
             }
         )
     }

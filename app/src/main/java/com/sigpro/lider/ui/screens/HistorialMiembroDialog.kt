@@ -18,7 +18,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 
-// Clase de datos para representar cada pago
 data class Pago(val fecha: String, val monto: String)
 
 @Composable
@@ -45,7 +44,6 @@ fun HistorialMiembroDialog(
                 modifier = Modifier.padding(20.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                // --- CABECERA ---
                 Text(
                     text = "Historial",
                     fontSize = 32.sp,
@@ -56,12 +54,10 @@ fun HistorialMiembroDialog(
 
                 Spacer(modifier = Modifier.height(24.dp))
 
-                // --- INFO PERFIL ---
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    // Icono de Perfil Circular
                     Box(
                         modifier = Modifier
                             .size(80.dp)
@@ -94,7 +90,6 @@ fun HistorialMiembroDialog(
                     modifier = Modifier.align(Alignment.Start)
                 )
 
-                // --- LISTA DE PAGOS ---
                 LazyColumn(
                     modifier = Modifier.weight(1f).fillMaxWidth(),
                     contentPadding = PaddingValues(vertical = 12.dp)
@@ -124,7 +119,6 @@ fun HistorialMiembroDialog(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // --- BOTÓN CERRAR ---
                 OutlinedButton(
                     onClick = onDismiss,
                     modifier = Modifier.fillMaxWidth(0.5f).height(45.dp),

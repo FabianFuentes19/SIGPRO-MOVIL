@@ -7,8 +7,13 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ExitToApp
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Payments
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.runtime.*
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -16,11 +21,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
+import androidx.navigation.compose.currentBackStackEntryAsState
 // AQUÍ IMPORTA TU COMPONENTE SEPARADO
 import com.sigpro.lider.ui.components.CardNominaItem
 import com.sigpro.lider.ui.theme.*
 
-// MODELO DE DATOS
 data class NominaData(
     val id: Int,
     val nombre: String,
@@ -32,7 +38,9 @@ data class NominaData(
 )
 
 @Composable
-fun HistorialNominasScreen() {
+fun HistorialNominasScreen(navController: NavController) {
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val currentRoute = navBackStackEntry?.destination?.route
     var searchText by remember { mutableStateOf("") }
     var filtroSeleccionado by remember { mutableStateOf("Todos") }
 
@@ -50,18 +58,69 @@ fun HistorialNominasScreen() {
         "Pagados" -> listaNominas.filter { it.isPagado }
         else -> listaNominas
     }
+    val azulMarino = Color(0xFF00334E)
 
     Scaffold(
         backgroundColor = GrisFondoApp,
         topBar = {
             TopAppBar(
-                title = { Text("Nóminas", color = BlancoPuro, fontWeight = FontWeight.Bold, fontSize = 20.sp) },
-                backgroundColor = AzulPrimario,
-                elevation = 0.dp,
-                modifier = Modifier.height(80.dp)
+                title = { Text("Nóminas", color = BlancoPuro, fontWeight = FontWeight.Bold) },
+                backgroundColor = AzulPrimario
             )
+        },
+        bottomBar = {
+            BottomNavigation(
+                backgroundColor = azulMarino,
+                contentColor = Color.White,
+                elevation = 8.dp
+            ) {
+                BottomNavigationItem(
+                    icon = { Icon(Icons.Default.Home, contentDescription = null, modifier = Modifier.size(24.dp)) },
+                    label = { Text(text = "Inicio", fontSize = 12.sp) },
+                    selected = currentRoute == "home",
+                    onClick = {
+                        navController.navigate("home") {
+                            popUpTo("home") {
+                                inclusive = true
+                            }
+                            launchSingleTop = true
+                        }
+                    },
+                    alwaysShowLabel = true
+                )
+
+                BottomNavigationItem(
+                    icon = { Icon(Icons.Default.Payments, contentDescription = null, modifier = Modifier.size(24.dp)) },
+                    label = { Text(text = "Nóminas", fontSize = 12.sp) },
+                    selected = currentRoute == "nominas",
+                    onClick = {
+                        if (currentRoute != "nominas") {
+                            navController.navigate("nominas") {
+                                launchSingleTop = true
+                                restoreState = true
+                            }
+                        }
+                    },
+                    alwaysShowLabel = true
+                )
+
+                BottomNavigationItem(
+                    icon = { Icon(Icons.Default.Person, contentDescription = null, modifier = Modifier.size(24.dp)) },
+                    label = { Text(text = "Perfil", fontSize = 12.sp) },
+                    selected = currentRoute == "perfil",
+                    onClick = {
+                        if (currentRoute != "perfil") {
+                            navController.navigate("perfil") {
+                                launchSingleTop = true
+                                restoreState = true
+                            }
+                        }
+                    },
+                    alwaysShowLabel = true
+                )
+            }
         }
-    ) { padding ->
+    ){ padding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -70,7 +129,6 @@ fun HistorialNominasScreen() {
         ) {
             Spacer(modifier = Modifier.height(16.dp))
 
-            // BUSCADOR
             OutlinedTextField(
                 value = searchText,
                 onValueChange = { searchText = it },
@@ -87,7 +145,6 @@ fun HistorialNominasScreen() {
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // BOTONES DE FILTRADO
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
@@ -104,13 +161,11 @@ fun HistorialNominasScreen() {
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // LISTA DE NÓMINAS
             LazyColumn(
                 verticalArrangement = Arrangement.spacedBy(16.dp),
                 contentPadding = PaddingValues(bottom = 16.dp)
             ) {
                 items(nominasFiltradas) { nomina ->
-                    // USANDO EL COMPONENTE SEPARADO
                     CardNominaItem(
                         nomina = nomina,
                         onPagarClick = {
@@ -147,12 +202,11 @@ fun BotonFiltro(texto: String, isSelected: Boolean, onClick: () -> Unit) {
         }
     }
 }
-
+/*
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 fun NominasScreenPreview() {
-    // Aquí envolvemos la pantalla en tu tema para que use los colores correctos
     SigproTheme {
         HistorialNominasScreen()
     }
-}
+}*/

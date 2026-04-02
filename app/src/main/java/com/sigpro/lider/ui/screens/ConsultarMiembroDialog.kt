@@ -18,7 +18,6 @@ import androidx.compose.ui.window.Dialog
 
 @Composable
 fun ConsultarMiembroDialog(
-    // Parámetros que recibe el modal (los datos que queremos ver)
     nombre: String,
     matricula: String,
     cuatrimestre: String,
@@ -31,7 +30,7 @@ fun ConsultarMiembroDialog(
 ) {
     val azulMarino = Color(0xFF00334E)
     val verdeBoton = Color(0xFF00897B)
-    val grisPuesto = Color(0xFFE0E0E0) // Gris claro para la etiqueta del puesto
+    val grisPuesto = Color(0xFFE0E0E0)
 
     Dialog(onDismissRequest = onDismiss) {
         Surface(
@@ -40,15 +39,14 @@ fun ConsultarMiembroDialog(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(vertical = 10.dp),
-            elevation = 16.dp // Misma elevación que los otros para consistencia
+            elevation = 16.dp
         ) {
             Column(
                 modifier = Modifier
                     .padding(horizontal = 24.dp, vertical = 20.dp)
-                    .verticalScroll(rememberScrollState()), // Por si acaso en pantallas chicas
+                    .verticalScroll(rememberScrollState()),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                // --- TÍTULO ---
                 Text(
                     text = "Consultar miembro",
                     fontSize = 22.sp,
@@ -58,12 +56,9 @@ fun ConsultarMiembroDialog(
 
                 Spacer(modifier = Modifier.height(32.dp))
 
-                // --- DATOS DEL MIEMBRO ---
-                // Para no repetir código, usamos una pequeña función auxiliar
                 InfoCampo(label = "NOMBRE", value = nombre, colorValue = azulMarino)
                 InfoCampo(label = "MATRICULA", value = matricula)
 
-                // Fila para Cuatri y Grupo
                 Row(modifier = Modifier.fillMaxWidth()) {
                     Column(modifier = Modifier.weight(1f)) {
                         InfoCampo(label = "CUATRISMSTRE", value = cuatrimestre)
@@ -99,7 +94,7 @@ fun ConsultarMiembroDialog(
                 Button(
                     onClick = onDismiss,
                     modifier = Modifier
-                        .fillMaxWidth(0.6f) // No ocupa todo el ancho, es más compacto
+                        .fillMaxWidth(0.6f)
                         .height(48.dp),
                     shape = RoundedCornerShape(10.dp),
                     colors = ButtonDefaults.buttonColors(backgroundColor = verdeBoton),

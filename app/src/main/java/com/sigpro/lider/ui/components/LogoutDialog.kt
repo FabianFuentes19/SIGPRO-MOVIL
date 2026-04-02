@@ -28,7 +28,7 @@ fun LogoutDialog(
         properties = DialogProperties(
             dismissOnBackPress = true,
             dismissOnClickOutside = true,
-            usePlatformDefaultWidth = false // Nos permite hacerlo más ancho
+            usePlatformDefaultWidth = false
         )
     ) {
         Card(
@@ -57,7 +57,7 @@ fun LogoutDialog(
 
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp) // Espacio entre botones
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     OutlinedButton(
                         onClick = onDismiss,
@@ -67,7 +67,7 @@ fun LogoutDialog(
                         shape = RoundedCornerShape(8.dp),
                         colors = ButtonDefaults.outlinedButtonColors(
                             contentColor = NegroTexto,
-                            backgroundColor = Color(0xFFF0F0F0) // Fondo gris clarito
+                            backgroundColor = Color(0xFFF0F0F0)
                         )
                     ) {
                         Text(
@@ -81,10 +81,10 @@ fun LogoutDialog(
                         onClick = onConfirm,
                         modifier = Modifier
                             .weight(1f)
-                            .height(50.dp), // Botones más altos
+                            .height(50.dp),
                         shape = RoundedCornerShape(8.dp),
                         colors = ButtonDefaults.buttonColors(
-                            backgroundColor = AzulPrimario // Tu azul oscuro de SIGPRO
+                            backgroundColor = AzulPrimario
                         )
                     ) {
                         Text(

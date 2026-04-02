@@ -4,12 +4,12 @@ import com.google.gson.annotations.SerializedName
 
 data class MaterialModel(
     @SerializedName("id")
-    val id: Long? = null, // Usamos Long para que coincida con el ID_PK de Java
+    val id: Long? = null,
 
     @SerializedName("nombre")
     val nombre: String,
 
-    @SerializedName("monto") // ¡CAMBIADO! Antes era precioUnitario
+    @SerializedName("monto")
     val monto: Double,
 
     @SerializedName("cantidad")

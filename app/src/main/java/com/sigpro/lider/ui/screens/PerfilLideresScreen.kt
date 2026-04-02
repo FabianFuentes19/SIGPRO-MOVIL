@@ -7,19 +7,29 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ExitToApp
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Payments
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.outlined.Payments
 import androidx.compose.runtime.*
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
+import androidx.navigation.compose.currentBackStackEntryAsState
 import com.sigpro.lider.ui.components.*
 import com.sigpro.lider.ui.theme.*
 
 @Composable
-fun PerfilLideresScreen(onNavigateToLogin: () -> Unit) {
+fun PerfilLideresScreen(navController: NavController) {
+
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val currentRoute = navBackStackEntry?.destination?.route
+    val azulMarino = Color(0xFF00334E)
     var showLogoutDialog by remember { mutableStateOf(false) }
 
     if (showLogoutDialog) {
@@ -27,7 +37,11 @@ fun PerfilLideresScreen(onNavigateToLogin: () -> Unit) {
             onDismiss = { showLogoutDialog = false },
             onConfirm = {
                 showLogoutDialog = false
-                onNavigateToLogin()
+
+                navController.navigate("login") {
+                    popUpTo("home") { inclusive = true }
+                    launchSingleTop = true
+                }
             }
         )
     }
@@ -44,6 +58,58 @@ fun PerfilLideresScreen(onNavigateToLogin: () -> Unit) {
                     }
                 }
             )
+        },
+        bottomBar = {
+            BottomNavigation(
+                backgroundColor = azulMarino,
+                contentColor = Color.White,
+                elevation = 8.dp
+            ) {
+                BottomNavigationItem(
+                    icon = { Icon(Icons.Default.Home, contentDescription = null, modifier = Modifier.size(24.dp)) },
+                    label = { Text(text = "Inicio", fontSize = 12.sp) },
+                    selected = currentRoute == "home",
+                    onClick = {
+                        navController.navigate("home") {
+                            popUpTo("home") {
+                                inclusive = true
+                            }
+                            launchSingleTop = true
+                        }
+                    },
+                    alwaysShowLabel = true
+                )
+
+                BottomNavigationItem(
+                    icon = { Icon(Icons.Default.Payments, contentDescription = null, modifier = Modifier.size(24.dp)) },
+                    label = { Text(text = "Nóminas", fontSize = 12.sp) },
+                    selected = currentRoute == "nominas",
+                    onClick = {
+                        if (currentRoute != "nominas") {
+                            navController.navigate("nominas") {
+                                launchSingleTop = true
+                                restoreState = true
+                            }
+                        }
+                    },
+                    alwaysShowLabel = true
+                )
+
+                BottomNavigationItem(
+                    icon = { Icon(Icons.Default.Person, contentDescription = null, modifier = Modifier.size(24.dp)) },
+                    label = { Text(text = "Perfil", fontSize = 12.sp) },
+                    selected = currentRoute == "perfil",
+                    onClick = {
+                        if (currentRoute != "perfil") {
+                            navController.navigate("perfil") {
+                                launchSingleTop = true
+                                restoreState = true
+                            }
+                        }
+                    },
+                    alwaysShowLabel = true
+                )
+            }
         }
     ) { padding ->
         Column(
@@ -51,7 +117,7 @@ fun PerfilLideresScreen(onNavigateToLogin: () -> Unit) {
                 .fillMaxSize()
                 .padding(padding)
                 .padding(16.dp)
-                .verticalScroll(rememberScrollState()) // Por si la lista crece
+                .verticalScroll(rememberScrollState())
         ) {
             SeccionHeader(titulo = "Información Personal", icono = Icons.Default.Person)
             Card(
@@ -81,11 +147,11 @@ fun PerfilLideresScreen(onNavigateToLogin: () -> Unit) {
         }
     }
 }
-
+/*
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 fun PerfilPreview() {
     SigproTheme {
         PerfilLideresScreen(onNavigateToLogin = {})
     }
-}
+}*/
