@@ -27,7 +27,6 @@ object ApiClient {
         val originalRequest = chain.request()
         val url = originalRequest.url
 
-        // No agregamos token en el login
         val isLoginRequest = url.encodedPath.endsWith("/auth/login")
 
         val builder = originalRequest.newBuilder()
@@ -42,7 +41,16 @@ object ApiClient {
         chain.proceed(builder.build())
     }
 
+    private val corsInterceptor = Interceptor { chain ->
+        val originalRequest = chain.request()
+        val requestWithOrigin = originalRequest.newBuilder()
+            .header("Origin", "http://localhost:8080")
+            .build()
+        chain.proceed(requestWithOrigin)
+    }
+
     private val okHttpClient = OkHttpClient.Builder()
+        .addInterceptor(corsInterceptor)
         .addInterceptor(loggingInterceptor)
         .addInterceptor(authInterceptor)
         .connectTimeout(30, TimeUnit.SECONDS)
@@ -51,7 +59,7 @@ object ApiClient {
         .build()
 
     private val retrofit: Retrofit = Retrofit.Builder()
-        .baseUrl(BuildConfig.API_BASE_URL)
+        .baseUrl("http://10.0.2.2:8080/") // Dirección para que el emulador llegue al localhost
         .client(okHttpClient)
         .addConverterFactory(GsonConverterFactory.create())
         .build()
