@@ -13,8 +13,8 @@ android {
         targetSdk = 34
         versionCode = 1
         versionName = "1.0"
-        // URL del backend (emulador: 10.0.2.2; dispositivo físico: IP de tu máquina)
-        buildConfigField("String", "API_BASE_URL", "\"http://10.0.2.2:8080/\"")
+
+        buildConfigField("String", "API_BASE_URL", "\"http://10.0.2.2:8080/api/\"")
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
@@ -64,6 +64,7 @@ dependencies {
     implementation("androidx.appcompat:appcompat:1.6.1")
     implementation("com.google.android.material:material:1.11.0")
     implementation("androidx.constraintlayout:constraintlayout:2.1.4")
+    implementation("androidx.navigation:navigation-compose:2.7.7")
 
     // --- JETPACK COMPOSE (BOM ayuda a gestionar versiones automáticamente) ---
     val composeBom = platform("androidx.compose:compose-bom:2024.02.00")
@@ -87,22 +88,6 @@ dependencies {
     // --- COROUTINES ---
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
-
-
-    // Jetpack Compose (BOM)
-    implementation(platform("androidx.compose:compose-bom:2024.02.02"))
-    implementation("androidx.activity:activity-compose:1.8.2")
-    implementation("androidx.lifecycle:lifecycle-runtime-compose:2.7.0")
-    implementation("androidx.compose.ui:ui")
-    implementation("androidx.compose.ui:ui-graphics")
-    implementation("androidx.compose.ui:ui-tooling-preview")
-    implementation("androidx.compose.material3:material3")
-    implementation("androidx.compose.foundation:foundation")
-    implementation("androidx.compose.material:material-icons-extended")
-    implementation("androidx.tv:tv-material:1.0.1")
-
-    debugImplementation("androidx.compose.ui:ui-tooling")
-    debugImplementation("androidx.compose.ui:ui-test-manifest")
 
     // --- TESTING ---
     testImplementation("junit:junit:4.13.2")
