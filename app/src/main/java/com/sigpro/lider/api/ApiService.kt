@@ -2,6 +2,12 @@ package com.sigpro.lider.api
 
 import com.sigpro.lider.models.LoginRequest
 import com.sigpro.lider.models.LoginResponse
+import com.sigpro.lider.models.MaterialRequestDTO
+import com.sigpro.lider.models.MaterialResponseDTO
+import com.sigpro.lider.models.PagoRequestDTO
+import com.sigpro.lider.models.PagoResponseDTO
+import com.sigpro.lider.models.ProyectoResponseDTO
+import com.sigpro.lider.models.UsuarioDTO
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.GET
@@ -13,4 +19,37 @@ interface ApiService {
 
     @POST("auth/login")
     suspend fun login(@Body request: LoginRequest): Response<LoginResponse>
+
+    @GET("proyectos/mi-proyecto/lider")
+    suspend fun obtenerProyectoLider(): Response<ProyectoResponseDTO>
+
+    @GET("usuarios/{matricula}")
+    suspend fun obtenerPerfil(@Path("matricula") matricula: String): Response<UsuarioDTO>
+
+    @GET("pagos/mis-pagos")
+    suspend fun obtenerMisPagos(): Response<List<PagoResponseDTO>>
+
+    @GET("usuarios/lider/{matricula}")
+    suspend fun obtenerMiembrosPorMatricula(@Path("matricula") matricula: String): Response<List<UsuarioDTO>>
+
+    @GET("api/materiales/proyecto/{proyectoId}")
+    suspend fun obtenerMateriales(@Path("proyectoId") proyectoId: Long): Response<List<MaterialResponseDTO>>
+
+    @POST("api/materiales")
+    suspend fun registrarMaterial(@Body material: MaterialRequestDTO): Response<MaterialResponseDTO>
+
+    @POST("usuarios")
+    suspend fun registrarMiembro(@Body usuario: UsuarioDTO): Response<UsuarioDTO>
+
+    @POST("pagos/registrar")
+    suspend fun registrarPago(@Body request: PagoRequestDTO): Response<PagoResponseDTO>
+
+    @GET("pagos/proyecto")
+    suspend fun consultarPagosProyecto(): Response<List<PagoResponseDTO>>
+
+    @POST("auth/forgot-password")
+    suspend fun solicitarRecuperacion(@Body body: Map<String, String>): Response<Map<String, String>>
+
+    @POST("auth/reset-password")
+    suspend fun restablecerPassword(@Body body: Map<String, String>): Response<Map<String, String>>
 }
