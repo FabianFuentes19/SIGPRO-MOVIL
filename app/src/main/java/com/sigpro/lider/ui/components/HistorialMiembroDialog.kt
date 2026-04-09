@@ -1,5 +1,6 @@
-package com.sigpro.lider.ui.screens
+package com.sigpro.lider.ui.components
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -122,7 +123,7 @@ fun HistorialMiembroDialog(
                 OutlinedButton(
                     onClick = onDismiss,
                     modifier = Modifier.fillMaxWidth(0.5f).height(45.dp),
-                    border = androidx.compose.foundation.BorderStroke(1.dp, verdeBoton),
+                    border = BorderStroke(1.dp, verdeBoton),
                     shape = RoundedCornerShape(12.dp)
                 ) {
                     Text("Cerrar", color = verdeBoton, fontWeight = FontWeight.Bold)

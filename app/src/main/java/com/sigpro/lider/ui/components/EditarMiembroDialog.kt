@@ -1,6 +1,5 @@
-package com.sigpro.lider.ui.screens
+package com.sigpro.lider.ui.components
 
-import android.view.Surface
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -43,6 +42,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import com.sigpro.lider.ui.screens.CustomLabel
+
 @OptIn(ExperimentalMaterialApi::class, ExperimentalMaterialApi::class)
 @Composable
 fun EditarMiembroDialog(
