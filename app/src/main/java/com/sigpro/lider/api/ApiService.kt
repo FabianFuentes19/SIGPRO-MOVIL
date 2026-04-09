@@ -52,4 +52,7 @@ interface ApiService {
 
     @POST("auth/reset-password")
     suspend fun restablecerPassword(@Body body: Map<String, String>): Response<Map<String, String>>
+
+    @POST("auth/verificar-codigo")
+    suspend fun verificarCodigo(@Body body: Map<String, String>): Response<Map<String, String>>
 }
