@@ -11,6 +11,8 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -26,6 +28,7 @@ fun VerifyCodeScreen(
     onVerified: () -> Unit,
     viewModel: AuthViewModel
 ) {
+    val focusRequesters = remember { List(6) { FocusRequester() } }
 
     LaunchedEffect(viewModel.pasoCompletado) {
         if (viewModel.pasoCompletado) {
@@ -34,8 +37,13 @@ fun VerifyCodeScreen(
         }
     }
 
+    LaunchedEffect(Unit) {
+        focusRequesters[0].requestFocus()
+    }
+
     val azulUtez = Color(0xFF00385F)
     val verdeReenviar = Color(0xFF00A88F)
+    val rojoError = Color(0xFFD32F2F)
     val appBg = Color(0xFFF2F2F2)
     val grisCampo = Color(0xFFF7F8F9)
 
@@ -115,9 +123,20 @@ fun VerifyCodeScreen(
                             onValueChange = { newValue ->
                                 if (newValue.length <= 1 && newValue.all { it.isDigit() }) {
                                     setFuns[index](newValue)
+
+                                    if (viewModel.mensajeError != null) {
+                                        viewModel.limpiarError()
                                     }
+
+                                    if (newValue.isNotEmpty() && index < 5) {
+                                        focusRequesters[index + 1].requestFocus()
+                                    }
+                                }
                             },
-                            modifier = Modifier.weight(1f).height(60.dp),
+                            modifier = Modifier
+                                .weight(1f)
+                                .height(60.dp)
+                                .focusRequester(focusRequesters[index]),
                             textStyle = TextStyle(
                                 fontSize = 18.sp,
                                 fontWeight = FontWeight.Bold,
@@ -129,11 +148,22 @@ fun VerifyCodeScreen(
                             singleLine = true,
                             colors = TextFieldDefaults.outlinedTextFieldColors(
                                 backgroundColor = grisCampo,
-                                unfocusedBorderColor = Color(0xFFE0E0E0),
-                                focusedBorderColor = azulUtez
+                                unfocusedBorderColor = if (viewModel.mensajeError != null) rojoError else Color(0xFFE0E0E0),
+                                focusedBorderColor = if (viewModel.mensajeError != null) rojoError else azulUtez
                             )
                         )
                     }
+                }
+
+                viewModel.mensajeError?.let { error ->
+                    Text(
+                        text = error,
+                        color = if (error.contains("éxito", ignoreCase = true)) verdeReenviar else rojoError,
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Medium,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.fillMaxWidth()
+                    )
                 }
 
                 Spacer(modifier = Modifier.height(8.dp))
@@ -141,36 +171,49 @@ fun VerifyCodeScreen(
                 Button(
                     onClick = { if (isCodeComplete) {
                         val codigoCompleto = "$d1$d2$d3$d4$d5$d6"
-                        viewModel.tokenTemporal = codigoCompleto
-                        onVerified()
+                        viewModel.validarCodigo(codigoCompleto)
                     } },
+                    enabled = isCodeComplete && !viewModel.cargando,
                     colors = ButtonDefaults.buttonColors(
                         backgroundColor = azulUtez,
-                        disabledBackgroundColor = Color.Gray
+                        disabledBackgroundColor = Color.Gray,
+                        contentColor = Color.White,
+                        disabledContentColor = Color.LightGray
                     ),
                     shape = RoundedCornerShape(12.dp),
-                    enabled = isCodeComplete,
                     modifier = Modifier.fillMaxWidth().height(55.dp)
                 ) {
-                    Text(
-                        "Verificar Código",
-                        color = Color.White,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 16.sp
-                    )
+                    if (viewModel.cargando) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(24.dp),
+                            color = Color.White,
+                            strokeWidth = 2.dp
+                        )
+                    } else {
+                        Text(
+                            text = "Verificar Código",
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 16.sp
+                        )
+                    }
                 }
 
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(text = "¿No recibiste el código? ", color = Color.Gray, fontSize = 14.sp)
-                    Text(
-                        text = "Reenviar",
-                        color = verdeReenviar,
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier.clickable {
-                            viewModel.enviarInstrucciones(viewModel.matriculaActual)
-                        }
-                    )
+
+                    if (viewModel.cargando) {
+                        Text(text = "Enviando...", color = Color.Gray, fontSize = 14.sp)
+                    } else {
+                        Text(
+                            text = "Reenviar",
+                            color = verdeReenviar,
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.clickable {
+                                viewModel.reenviarCodigo(viewModel.matriculaActual)
+                            }
+                        )
+                    }
                 }
             }
         }
