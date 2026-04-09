@@ -27,19 +27,19 @@ fun ResetPasswordScreen(
     onBackToLogin: () -> Unit,
     viewModel: AuthViewModel
 ) {
-
+    val context = LocalContext.current
     LaunchedEffect(viewModel.pasoCompletado) {
         if (viewModel.pasoCompletado) {
-            //onGoToVerify()
+            Toast.makeText(context, "¡Contraseña actualizada con éxito!", Toast.LENGTH_LONG).show()
             viewModel.resetPaso()
+            onBackToLogin()
         }
     }
-    val context = LocalContext.current
-
     val azulUtez = Color(0xFF00385F)
     val appBg = Color(0xFFF2F2F2)
     val grisCampo = Color(0xFFF7F8F9)
     val azulSugerenciaBg = Color(0xFFF0F7FF)
+    val rojoError = Color(0xFFD32F2F)
 
     var newPassword by remember { mutableStateOf("") }
     var confirmPassword by remember { mutableStateOf("") }
@@ -47,6 +47,8 @@ fun ResetPasswordScreen(
     var confirmPasswordVisible by remember { mutableStateOf(false) }
 
     var errorMessage by remember { mutableStateOf("") }
+
+    val hayErrorVisual = errorMessage.isNotEmpty() || viewModel.mensajeError != null
 
     Box(
         modifier = Modifier
@@ -95,15 +97,20 @@ fun ResetPasswordScreen(
                 )
                 OutlinedTextField(
                     value = newPassword,
-                    onValueChange = { newPassword = it; errorMessage = "" },
+                    onValueChange = {
+                        newPassword = it
+                        errorMessage = ""
+                        if (viewModel.mensajeError != null) viewModel.limpiarError()
+                    },
                     placeholder = { Text("••••••••", color = Color.LightGray) },
                     visualTransformation = if (newPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                    isError = hayErrorVisual,
                     trailingIcon = {
                         IconButton(onClick = { newPasswordVisible = !newPasswordVisible }) {
                             Icon(
                                 imageVector = if (newPasswordVisible) Icons.Filled.VisibilityOff else Icons.Filled.Visibility,
                                 contentDescription = null,
-                                tint = Color.Gray
+                                tint = if (hayErrorVisual) rojoError else Color.Gray
                             )
                         }
                     },
@@ -111,8 +118,8 @@ fun ResetPasswordScreen(
                     singleLine = true,
                     colors = TextFieldDefaults.outlinedTextFieldColors(
                         backgroundColor = grisCampo,
-                        unfocusedBorderColor = Color(0xFFE0E0E0),
-                        focusedBorderColor = azulUtez
+                        unfocusedBorderColor = if (hayErrorVisual) rojoError else Color(0xFFE0E0E0),
+                        focusedBorderColor = if (hayErrorVisual) rojoError else azulUtez
                     ),
                     modifier = Modifier.fillMaxWidth()
                 )
@@ -126,15 +133,20 @@ fun ResetPasswordScreen(
                 )
                 OutlinedTextField(
                     value = confirmPassword,
-                    onValueChange = { confirmPassword = it; errorMessage = "" },
+                    onValueChange = {
+                        confirmPassword = it
+                        errorMessage = ""
+                        if (viewModel.mensajeError != null) viewModel.limpiarError()
+                    },
                     placeholder = { Text("••••••••", color = Color.LightGray) },
                     visualTransformation = if (confirmPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                    isError = hayErrorVisual,
                     trailingIcon = {
                         IconButton(onClick = { confirmPasswordVisible = !confirmPasswordVisible }) {
                             Icon(
                                 imageVector = if (confirmPasswordVisible) Icons.Filled.VisibilityOff else Icons.Filled.Visibility,
                                 contentDescription = null,
-                                tint = Color.Gray
+                                tint = if (hayErrorVisual) rojoError else Color.Gray
                             )
                         }
                     },
@@ -142,8 +154,8 @@ fun ResetPasswordScreen(
                     singleLine = true,
                     colors = TextFieldDefaults.outlinedTextFieldColors(
                         backgroundColor = grisCampo,
-                        unfocusedBorderColor = Color(0xFFE0E0E0),
-                        focusedBorderColor = azulUtez
+                        unfocusedBorderColor = if (hayErrorVisual) rojoError else Color(0xFFE0E0E0),
+                        focusedBorderColor = if (hayErrorVisual) rojoError else azulUtez
                     ),
                     modifier = Modifier.fillMaxWidth()
                 )
@@ -151,9 +163,18 @@ fun ResetPasswordScreen(
                 if (errorMessage.isNotEmpty()) {
                     Text(
                         text = errorMessage,
-                        color = Color.Red,
+                        color = rojoError,
                         fontSize = 12.sp,
-                        modifier = Modifier.align(Alignment.Start)
+                        modifier = Modifier.fillMaxWidth(),
+                        textAlign = TextAlign.Start
+                    )
+                } else if (viewModel.mensajeError != null) {
+                    Text(
+                        text = viewModel.mensajeError!!,
+                        color = rojoError,
+                        fontSize = 12.sp,
+                        modifier = Modifier.fillMaxWidth(),
+                        textAlign = TextAlign.Start
                     )
                 }
 
@@ -161,20 +182,34 @@ fun ResetPasswordScreen(
 
                 Button(
                     onClick = {
-                        if (newPassword != confirmPassword) {
-                            errorMessage = "Las contraseñas no coinciden"
-                        } else if (newPassword.length < 8) {
-                            errorMessage = "La contraseña es muy corta"
-                        } else {
-                            Toast.makeText(context, "Contraseña actualizada", Toast.LENGTH_SHORT).show()
-                            onBackToLogin()
+                        errorMessage = ""
+                        val passwordPattern = "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$%^&+=!._-])(?=\\S+$).{8,}$".toRegex()
+
+                        when {
+                            newPassword.isEmpty() || confirmPassword.isEmpty() -> {
+                                errorMessage = "Favor de llenar todos los campos"
+                            }
+                            newPassword != confirmPassword -> {
+                                errorMessage = "Las contraseñas no coinciden"
+                            }
+                            !newPassword.matches(passwordPattern) -> {
+                                errorMessage = "La contraseña debe tener: Mayúscula, minúscula, número y un símbolo (mín. 8 caracteres)"
+                            }
+                            else -> {
+                                viewModel.restablecerPassword(newPassword)
+                            }
                         }
                     },
+                    enabled = !viewModel.cargando,
                     colors = ButtonDefaults.buttonColors(backgroundColor = azulUtez),
                     shape = RoundedCornerShape(12.dp),
                     modifier = Modifier.fillMaxWidth().height(55.dp)
                 ) {
-                    Text("Cambiar Contraseña", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                    if (viewModel.cargando) {
+                        CircularProgressIndicator(modifier = Modifier.size(24.dp), color = Color.White)
+                    } else {
+                        Text("Cambiar Contraseña", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                    }
                 }
 
                 OutlinedButton(
