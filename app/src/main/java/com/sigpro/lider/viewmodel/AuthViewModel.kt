@@ -16,6 +16,9 @@ class AuthViewModel : ViewModel() {
     var mensajeError by mutableStateOf<String?>(null)
     var pasoCompletado by mutableStateOf(false)
 
+    fun limpiarError() {
+        mensajeError = null
+    }
     fun enviarInstrucciones(matricula: String) {
         viewModelScope.launch {
             cargando = true
@@ -30,6 +33,51 @@ class AuthViewModel : ViewModel() {
                 }
             } catch (e: Exception) {
                 mensajeError = "Error de conexión con el servidor."
+            } finally {
+                cargando = false
+            }
+        }
+    }
+
+    fun validarCodigo(token: String) {
+        viewModelScope.launch {
+            cargando = true
+            mensajeError = null
+            try {
+                val body = mapOf(
+                    "matricula" to matriculaActual,
+                    "token" to token
+                )
+                val response = ApiClient.apiService.verificarCodigo(body)
+
+                if (response.isSuccessful) {
+                    tokenTemporal = token
+                    pasoCompletado = true
+                } else {
+                    mensajeError = "El código ingresado es incorrecto."
+                }
+            } catch (e: Exception) {
+                mensajeError = "Error de conexión con el servidor."
+            } finally {
+                cargando = false
+            }
+        }
+    }
+
+    fun reenviarCodigo(matricula: String) {
+        viewModelScope.launch {
+            cargando = true
+            mensajeError = null
+            try {
+                val response = ApiClient.apiService.solicitarRecuperacion(mapOf("matricula" to matricula))
+
+                if (response.isSuccessful) {
+                    mensajeError = "Código reenviado con éxito"
+                } else {
+                    mensajeError = "No se pudo reenviar el código"
+                }
+            } catch (e: Exception) {
+                mensajeError = "Error de red: revisa tu conexión"
             } finally {
                 cargando = false
             }
