@@ -84,24 +84,25 @@ class AuthViewModel : ViewModel() {
         }
     }
 
-    fun cambiarPassword(token: String, nuevaClave: String) {
+    fun restablecerPassword(nuevaPassword: String) {
         viewModelScope.launch {
             cargando = true
             mensajeError = null
             try {
                 val body = mapOf(
                     "matricula" to matriculaActual,
-                    "token" to token,
-                    "nuevaContrasena" to nuevaClave
+                    "token" to tokenTemporal,
+                    "nuevaContrasena" to nuevaPassword
                 )
                 val response = ApiClient.apiService.restablecerPassword(body)
+
                 if (response.isSuccessful) {
                     pasoCompletado = true
                 } else {
-                    mensajeError = "Código incorrecto o contraseña no cumple requisitos."
+                    mensajeError = "No se pudo actualizar. Revisa que cumpla con los requisitos de seguridad."
                 }
             } catch (e: Exception) {
-                mensajeError = "Error al conectar con el servidor."
+                mensajeError = "Error de conexión con el servidor."
             } finally {
                 cargando = false
             }
