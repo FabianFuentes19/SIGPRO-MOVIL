@@ -14,11 +14,13 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.sigpro.lider.R
+import com.sigpro.lider.viewmodel.AuthViewModel
 
 @Composable
 fun ForgotPasswordScreen(
     onBackToLogin: () -> Unit,
     onGoToVerify: () -> Unit,
+    viewModel: AuthViewModel
 ) {
     val azulUtez = Color(0xFF00385F)
     val appBg = Color(0xFFF2F2F2)
@@ -26,8 +28,14 @@ fun ForgotPasswordScreen(
     val cardShape = RoundedCornerShape(16.dp)
 
     var usuario by remember { mutableStateOf("") }
-    // Agregamos un estado para error visual
     var isError by remember { mutableStateOf(false) }
+
+    LaunchedEffect(viewModel.pasoCompletado) {
+        if (viewModel.pasoCompletado) {
+            onGoToVerify()
+            viewModel.resetPaso()
+        }
+    }
 
     Box(
         modifier = Modifier
@@ -104,38 +112,45 @@ fun ForgotPasswordScreen(
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                Button(
-                    onClick = {
-                        if (usuario.isNotBlank()) {
-                            onGoToVerify()
-                        } else {
-                            isError = true
-                        }
-                    },
-                    colors = ButtonDefaults.buttonColors(backgroundColor = azulUtez),
-                    shape = RoundedCornerShape(12.dp),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(55.dp)
-                ) {
-                    Text(
-                        text = "Enviar instrucciones",
-                        color = Color.White,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 16.sp
-                    )
-                }
+                if (viewModel.cargando) {
+                    CircularProgressIndicator(color = Color(0xFF00385F))
+                } else {
+                    Button(
+                        onClick = {
+                            if (usuario.isNotBlank()) {
+                                viewModel.enviarInstrucciones(usuario)
+                            } else {
+                                isError = true
+                            }
+                        },
+                        colors = ButtonDefaults.buttonColors(backgroundColor = azulUtez),
+                        shape = RoundedCornerShape(12.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(55.dp)
+                    ) {
+                        Text(
+                            text = "Enviar instrucciones",
+                            color = Color.White,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 16.sp
+                        )
+                    }
+                    viewModel.mensajeError?.let {
+                        Text(it, color = Color.Red, fontSize = 12.sp, textAlign = TextAlign.Center)
+                    }
 
-                TextButton(
-                    onClick = onBackToLogin,
-                    modifier = Modifier.padding(top = 4.dp)
-                ) {
-                    Text(
-                        text = "Regresar al inicio de sesión",
-                        color = azulUtez,
-                        fontWeight = FontWeight.SemiBold,
-                        fontSize = 14.sp
-                    )
+                    TextButton(
+                        onClick = onBackToLogin,
+                        modifier = Modifier.padding(top = 4.dp)
+                    ) {
+                        Text(
+                            text = "Regresar al inicio de sesión",
+                            color = azulUtez,
+                            fontWeight = FontWeight.SemiBold,
+                            fontSize = 14.sp
+                        )
+                    }
                 }
             }
         }

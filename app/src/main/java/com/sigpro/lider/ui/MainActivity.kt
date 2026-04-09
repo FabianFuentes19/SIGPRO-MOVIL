@@ -6,9 +6,11 @@ import androidx.activity.compose.setContent
 import androidx.compose.material.Surface
 import androidx.compose.material.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.sigpro.lider.ui.screens.*
 import com.sigpro.lider.ui.theme.SigproTheme
 
@@ -24,10 +26,10 @@ class MainActivity : ComponentActivity() {
         }
     }
 }
-
 @Composable
 fun AppNavigation() {
     val navController = rememberNavController()
+    val authViewModel: com.sigpro.lider.viewmodel.AuthViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
 
     NavHost(
         navController = navController,
@@ -46,41 +48,50 @@ fun AppNavigation() {
 
         composable("forgot") {
             ForgotPasswordScreen(
-                onBackToLogin = { navController.popBackStack() }, // Regresa a la anterior
-                onGoToVerify = { navController.navigate("verify") }
+                onBackToLogin = { navController.popBackStack() },
+                onGoToVerify = { navController.navigate("verify") },
+                viewModel = authViewModel
             )
         }
 
-        composable("verify") {
+       composable("verify") {
             VerifyCodeScreen(
                 onBackToForgot = { navController.popBackStack() },
-                onVerified = { navController.navigate("reset") }
+                onVerified = { navController.navigate("reset") },
+                viewModel = authViewModel
             )
         }
 
-        composable("reset") {
-            ResetPasswordScreen(
-                onBackToLogin = {
-                    navController.navigate("login") {
-                        popUpTo("forgot") { inclusive = true }
-                    }
+                composable("reset") {
+                    ResetPasswordScreen(
+                        onBackToLogin = {
+                            navController.navigate("login") {
+                                popUpTo("forgot") { inclusive = true }
+                            }
+                        },
+                        viewModel = authViewModel
+                    )
                 }
-            )
-        }
 
         composable("home") {
             HomeLiderScreen(navController = navController)
         }
+
 
         composable("nominas") {
             HistorialNominasScreen(navController = navController)
         }
 
         composable("perfil") {
-            PerfilLideresScreen (navController = navController)
+            PerfilLideresScreen(navController = navController)
         }
-        composable("materiales") {
-            MaterialesScreen(navController = navController)
+
+        composable(
+            route = "materiales/{proyectoId}",
+            arguments = listOf(navArgument("proyectoId") { type = NavType.LongType })
+        ) { backStackEntry ->
+            val id = backStackEntry.arguments?.getLong("proyectoId") ?: 0L
+            MaterialesScreen(navController, id)
         }
     }
 }

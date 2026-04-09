@@ -189,7 +189,9 @@ fun LoginScreen(
                             if (response.isSuccessful) {
                                 val token = response.body()?.token
                                 if (!token.isNullOrBlank()) {
-                                    SessionManager.saveSession(token, response.body()?.rol ?: "")
+                                    val body = response.body()
+                                    val matricula = body?.matricula ?: user
+                                    SessionManager.saveSession(token, body?.rol ?: "", matricula)
                                     Toast.makeText(context, "¡Bienvenido!", Toast.LENGTH_SHORT).show()
 
                                     onLoginSucces()

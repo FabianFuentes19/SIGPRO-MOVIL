@@ -18,12 +18,22 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.sigpro.lider.viewmodel.AuthViewModel
 
 @Composable
 fun VerifyCodeScreen(
     onBackToForgot: () -> Unit,
     onVerified: () -> Unit,
+    viewModel: AuthViewModel
 ) {
+
+    LaunchedEffect(viewModel.pasoCompletado) {
+        if (viewModel.pasoCompletado) {
+            onVerified()
+            viewModel.resetPaso()
+        }
+    }
+
     val azulUtez = Color(0xFF00385F)
     val verdeReenviar = Color(0xFF00A88F)
     val appBg = Color(0xFFF2F2F2)
@@ -93,18 +103,18 @@ fun VerifyCodeScreen(
                     horizontalArrangement = Arrangement.spacedBy(6.dp),
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    val states = listOf(d1, d2, d3, d4, d5, d6)
-                    val setStates = listOf<(String) -> Unit>(
+                    val inputs = listOf(d1, d2, d3, d4, d5, d6)
+                    val setFuns = listOf<(String) -> Unit>(
                         { d1 = it }, { d2 = it }, { d3 = it },
                         { d4 = it }, { d5 = it }, { d6 = it }
                     )
 
-                    states.forEachIndexed { index, value ->
+                    inputs.forEachIndexed { index, value ->
                         OutlinedTextField(
                             value = value,
                             onValueChange = { newValue ->
                                 if (newValue.length <= 1 && newValue.all { it.isDigit() }) {
-                                    setStates[index](newValue)
+                                    setFuns[index](newValue)
                                     }
                             },
                             modifier = Modifier.weight(1f).height(60.dp),
@@ -129,7 +139,11 @@ fun VerifyCodeScreen(
                 Spacer(modifier = Modifier.height(8.dp))
 
                 Button(
-                    onClick = { if (isCodeComplete) onVerified() },
+                    onClick = { if (isCodeComplete) {
+                        val codigoCompleto = "$d1$d2$d3$d4$d5$d6"
+                        viewModel.tokenTemporal = codigoCompleto
+                        onVerified()
+                    } },
                     colors = ButtonDefaults.buttonColors(
                         backgroundColor = azulUtez,
                         disabledBackgroundColor = Color.Gray
@@ -153,7 +167,9 @@ fun VerifyCodeScreen(
                         color = verdeReenviar,
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Bold,
-                        modifier = Modifier.clickable { /* Lógica de reenvío */ }
+                        modifier = Modifier.clickable {
+                            viewModel.enviarInstrucciones(viewModel.matriculaActual)
+                        }
                     )
                 }
             }

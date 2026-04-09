@@ -7,57 +7,65 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ExitToApp
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Payments
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.runtime.*
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
-// AQUÍ IMPORTA TU COMPONENTE SEPARADO
 import com.sigpro.lider.ui.components.CardNominaItem
 import com.sigpro.lider.ui.theme.*
-
+import com.sigpro.lider.viewmodels.PagosViewModel
+import java.math.BigDecimal
 data class NominaData(
     val id: Int,
     val nombre: String,
+    val matricula: String,
     val puesto: String,
     val voucher: String,
-    val monto: String,
+    val monto: BigDecimal,
     val fecha: String,
     var isPagado: Boolean = false
 )
 
 @Composable
-fun HistorialNominasScreen(navController: NavController) {
+fun HistorialNominasScreen(
+    navController: NavController,
+    viewModel: PagosViewModel = viewModel()
+) {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
+
     var searchText by remember { mutableStateOf("") }
     var filtroSeleccionado by remember { mutableStateOf("Todos") }
 
-    val listaNominas = remember {
-        mutableStateListOf(
-            NominaData(1, "Marcos Ortíz", "Diseñador gráfico", "00123", "$15,000", "15/10/2023", isPagado = false),
-            NominaData(2, "Roberto Sánchez", "Ingeniero Civil", "00119", "$18,000", "15/10/2023", isPagado = true),
-            NominaData(3, "Zuri Rodriguez", "Programadora", "00124", "$15,000", "15/10/2023", isPagado = false),
-            NominaData(4, "Roberto Fuentes", "Diseñador", "00120", "$16,000", "14/10/2023", isPagado = true)
-        )
+    LaunchedEffect(Unit) {
+        viewModel.cargarNominas()
     }
 
-    val nominasFiltradas = when (filtroSeleccionado) {
-        "Pendientes" -> listaNominas.filter { !it.isPagado }
-        "Pagados" -> listaNominas.filter { it.isPagado }
-        else -> listaNominas
+    val listaNominas = viewModel.listaNominas
+    val estaCargando = viewModel.cargando
+
+    val nominasFiltradas = listaNominas.filter { nomina ->
+        val coincideBusqueda = nomina.nombre.contains(searchText, ignoreCase = true) ||
+                nomina.puesto.contains(searchText, ignoreCase = true)
+
+        val coincideEstado = when (filtroSeleccionado) {
+            "Pendientes" -> !nomina.isPagado
+            "Pagados" -> nomina.isPagado
+            else -> true
+        }
+        coincideBusqueda && coincideEstado
     }
+
     val azulMarino = Color(0xFF00334E)
 
     Scaffold(
@@ -80,9 +88,7 @@ fun HistorialNominasScreen(navController: NavController) {
                     selected = currentRoute == "home",
                     onClick = {
                         navController.navigate("home") {
-                            popUpTo("home") {
-                                inclusive = true
-                            }
+                            popUpTo("home") { inclusive = true }
                             launchSingleTop = true
                         }
                     },
@@ -120,7 +126,7 @@ fun HistorialNominasScreen(navController: NavController) {
                 )
             }
         }
-    ){ padding ->
+    ) { padding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -145,6 +151,7 @@ fun HistorialNominasScreen(navController: NavController) {
 
             Spacer(modifier = Modifier.height(16.dp))
 
+            // Botones de Filtro
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
@@ -161,20 +168,32 @@ fun HistorialNominasScreen(navController: NavController) {
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            LazyColumn(
-                verticalArrangement = Arrangement.spacedBy(16.dp),
-                contentPadding = PaddingValues(bottom = 16.dp)
-            ) {
-                items(nominasFiltradas) { nomina ->
-                    CardNominaItem(
-                        nomina = nomina,
-                        onPagarClick = {
-                            val index = listaNominas.indexOfFirst { it.id == nomina.id }
-                            if (index != -1) {
-                                listaNominas[index] = listaNominas[index].copy(isPagado = true)
-                            }
+            if (estaCargando) {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator(color = AzulPrimario, strokeWidth = 4.dp)
+                }
+            } else {
+                if (nominasFiltradas.isEmpty()) {
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        Text("No se encontraron registros", color = GrisTextoSecundario)
+                    }
+                } else {
+                    LazyColumn(
+                        verticalArrangement = Arrangement.spacedBy(16.dp),
+                        contentPadding = PaddingValues(bottom = 16.dp)
+                    ) {
+                        items(nominasFiltradas) { nomina ->
+                            CardNominaItem(
+                                nomina = nomina,
+                                onPagarClick = {
+                                    viewModel.registrarPago(nomina)
+                                }
+                            )
                         }
-                    )
+                    }
                 }
             }
         }
@@ -202,11 +221,3 @@ fun BotonFiltro(texto: String, isSelected: Boolean, onClick: () -> Unit) {
         }
     }
 }
-/*
-@Preview(showBackground = true, showSystemUi = true)
-@Composable
-fun NominasScreenPreview() {
-    SigproTheme {
-        HistorialNominasScreen()
-    }
-}*/

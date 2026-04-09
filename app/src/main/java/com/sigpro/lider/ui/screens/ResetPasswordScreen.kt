@@ -20,11 +20,20 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.sigpro.lider.viewmodel.AuthViewModel
 
 @Composable
 fun ResetPasswordScreen(
     onBackToLogin: () -> Unit,
+    viewModel: AuthViewModel
 ) {
+
+    LaunchedEffect(viewModel.pasoCompletado) {
+        if (viewModel.pasoCompletado) {
+            //onGoToVerify()
+            viewModel.resetPaso()
+        }
+    }
     val context = LocalContext.current
 
     val azulUtez = Color(0xFF00385F)

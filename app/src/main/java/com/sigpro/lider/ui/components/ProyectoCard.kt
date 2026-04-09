@@ -11,7 +11,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
-@OptIn(ExperimentalMaterialApi::class) // 1. Necesario para usar onClick en Surface de Material 2
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun ProyectoCard(
     nombre: String,

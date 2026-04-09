@@ -63,7 +63,7 @@ fun LogoutDialog(
                         onClick = onDismiss,
                         modifier = Modifier
                             .weight(1f)
-                            .height(50.dp), // Botones más altos
+                            .height(50.dp),
                         shape = RoundedCornerShape(8.dp),
                         colors = ButtonDefaults.outlinedButtonColors(
                             contentColor = NegroTexto,

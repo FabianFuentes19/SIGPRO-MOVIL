@@ -61,7 +61,7 @@ fun CardNominaItem(
                         color = colorTextoSecundario,
                         fontWeight = FontWeight.Bold
                     )
-                    Text(text = nomina.monto, fontSize = 28.sp, fontWeight = FontWeight.Bold, color = colorMonto)
+                    Text(text = "$${nomina.monto}", fontSize = 28.sp, fontWeight = FontWeight.Bold, color = colorMonto)
                 }
 
                 val badgeColor = if (nomina.isPagado) Color(0xFFE0E0E0) else Color(0xFFFFFDE7)

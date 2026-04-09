@@ -1,5 +1,6 @@
 package com.sigpro.lider.ui.screens
 
+import android.util.Log
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -10,48 +11,48 @@ import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Payments
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.PersonAdd
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
-import com.sigpro.lider.ui.components.ProyectoCard
-import com.sigpro.lider.ui.components.MiembroItem
+import com.sigpro.lider.models.UsuarioDTO
+import com.sigpro.lider.ui.components.*
 import com.sigpro.lider.ui.theme.AzulPrimario
 import com.sigpro.lider.ui.theme.BlancoPuro
-import com.sigpro.lider.ui.theme.SigproTheme
+import com.sigpro.lider.viewmodel.HomeLiderViewModel
 
 @Composable
-fun HomeLiderScreen(navController: NavController) {
-
+fun HomeLiderScreen(
+    navController: NavController,
+    viewModel: HomeLiderViewModel = viewModel()
+) {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
+    val context = androidx.compose.ui.platform.LocalContext.current
     var showEditarDialog by remember { mutableStateOf(false) }
-    var miembroSeleccionado by remember { mutableStateOf("") }
     var showAgregarMiembroDialog by remember { mutableStateOf(false) }
     var showEliminarMiembroDialog by remember { mutableStateOf(false) }
     var showConsultarMiembroDialog by remember { mutableStateOf(false) }
     var showHistorialMiembroDialog by remember { mutableStateOf(false) }
+    var miembroSeleccionado by remember { mutableStateOf<UsuarioDTO?>(null) }
 
-    //Datos prueba para historial
     val pagosDePrueba = listOf(
         Pago("11 DE FEB, 2026", "$15,000.00"),
         Pago("28 DE ENE, 2026", "$15,000.00"),
-        Pago("14 DE ENE, 2026", "$15,000.00"),
-        Pago("31 DE DIC, 2025", "$15,000.00"),
-        Pago("17 DE DIC, 2025", "$15,000.00"),
-        Pago("03 DE DIC, 2025", "$15,000.00")
     )
 
+    LaunchedEffect(Unit) {
+        viewModel.cargarProyecto()
+    }
+
+    val proyecto = viewModel.proyecto
     val azulMarino = Color(0xFF00334E)
     val doradoBoton = Color(0xFFA68238)
 
@@ -126,17 +127,37 @@ fun HomeLiderScreen(navController: NavController) {
             item {
                 Spacer(modifier = Modifier.height(16.dp))
 
-                ProyectoCard(
-                    nombre = "SIGPRO-MOVIL",
-                    objetivo = "Sistema de gestión de recursos",
-                    fechaInicio = "21/02/2026",
-                    fechaFin = "29/04/2026",
-                    presupuesto = "400,000",
-                    progreso = 0.65f,
-                    onClick = {
-                        navController.navigate("materiales")
+                if (viewModel.cargando) {
+                    Box(Modifier.fillMaxWidth().height(200.dp), contentAlignment = Alignment.Center) {
+                        CircularProgressIndicator(color = AzulPrimario)
                     }
-                )
+                } else if (proyecto != null) {
+                    ProyectoCard(
+                        nombre = proyecto.nombre,
+                        objetivo = proyecto.objetivoGeneral,
+                        fechaInicio = proyecto.fechaInicio,
+                        fechaFin = proyecto.fechaFin,
+                        presupuesto = proyecto.presupuesto.toString(),
+                        progreso = 0.65f,
+                        onClick = { proyecto?.id?.let { id ->
+                            navController.navigate("materiales/$id")
+                        } ?: run {
+                            Log.e("NAV_ERROR", "El proyecto aún no carga, no puedo ir a materiales")
+                        } }
+                    )
+                } else {
+                    Card(
+                        modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+                        shape = RoundedCornerShape(12.dp),
+                        elevation = 2.dp
+                    ) {
+                        Column(modifier = Modifier.padding(24.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text("Aún no se te asigna ningún proyecto", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = azulMarino, textAlign = TextAlign.Center)
+                            Spacer(Modifier.height(8.dp))
+                            Text("Contacta al administrador para el registro.", fontSize = 14.sp, color = Color.Gray, textAlign = TextAlign.Center)
+                        }
+                    }
+                }
 
                 Spacer(modifier = Modifier.height(32.dp))
 
@@ -174,103 +195,118 @@ fun HomeLiderScreen(navController: NavController) {
                         )
                     }
                 }
-
                 Spacer(modifier = Modifier.height(16.dp))
             }
 
-            val listaFalsaDeMiembros = listOf("Marcos Ríos", "Ana García", "Luis Pineda")
-
-            items(listaFalsaDeMiembros) { nombre ->
-                MiembroItem(
-                    nombre = nombre,
-                    rol = "Diseñador",
-                    onEditar = {
-                        miembroSeleccionado = nombre
-                        showEditarDialog = true
-                    },
-                    onBorrar = {
-                        miembroSeleccionado = nombre
-                        showEliminarMiembroDialog = true
-                    },
-                    onDetalles = {
-                        miembroSeleccionado = nombre
-                        showConsultarMiembroDialog = true
-                    },
-                    onHistorial = {
-                        miembroSeleccionado = nombre
-                        showHistorialMiembroDialog = true
+            if (viewModel.cargando) {
+                item {
+                    Box(
+                        modifier = Modifier.fillMaxWidth().padding(vertical = 40.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator(color = AzulPrimario)
                     }
-                )
-                Spacer(modifier = Modifier.height(12.dp))
+                }
+            } else if (viewModel.listaMiembros.isEmpty()) {
+                item {
+                    Column(
+                        modifier = Modifier.fillMaxWidth().padding(vertical = 40.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(
+                            text = "Aún no hay participantes en el proyecto",
+                            fontSize = 16.sp,
+                            color = Color.Gray,
+                            fontWeight = FontWeight.Medium
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = "Usa el botón de arriba para añadir uno.",
+                            fontSize = 14.sp,
+                            color = Color.LightGray
+                        )
+                    }
+                }
+            } else {
+                items(viewModel.listaMiembros) { miembro ->
+                    MiembroItem(
+                        nombre = miembro.nombreCompleto,
+                        rol = miembro.puesto,
+                        onEditar = {
+                            miembroSeleccionado = miembro
+                            showEditarDialog = true
+                        },
+                        onBorrar = {
+                            miembroSeleccionado = miembro
+                            showEliminarMiembroDialog = true
+                        },
+                        onDetalles = {
+                            miembroSeleccionado = miembro
+                            showConsultarMiembroDialog = true
+                        },
+                        onHistorial = {
+                            miembroSeleccionado = miembro
+                            showHistorialMiembroDialog = true
+                        }
+                    )
+                    Spacer(modifier = Modifier.height(12.dp))
+                }
             }
-
             item { Spacer(modifier = Modifier.height(16.dp)) }
         }
     }
+
     if (showAgregarMiembroDialog) {
         AgregarMiembroDialog(
             onDismiss = { showAgregarMiembroDialog = false },
-            onGuardar = {
-                println("Guardando miembro...")
+            onGuardar = { miembro ->
+                viewModel.agregarMiembro(context, miembro)
                 showAgregarMiembroDialog = false
             }
         )
     }
 
-    // Diálogo de Edición
-    if (showEditarDialog) {
+
+    if (showEditarDialog && miembroSeleccionado != null) {
         EditarMiembroDialog(
-            nombrePre = miembroSeleccionado,
-            matriculaPre = "20243ds001",    // Datos de ejemplo
-            cuatriPre = "5",
-            grupoPre = "B",
-            carreraPre = "DS",
-            contrasenaPre = "123@",
-            rolPre = "Miembro",
-            puestoPre = "Programador",
-            salarioPre = "15,000.00",
-            fechaPre = "04/02/2026",
+            nombrePre = miembroSeleccionado!!.nombreCompleto,
+            matriculaPre = miembroSeleccionado!!.matricula,
+            cuatriPre = miembroSeleccionado!!.cuatrimestre.toString(),
+            grupoPre = miembroSeleccionado!!.grupo,
+            carreraPre = miembroSeleccionado!!.carrera,
+            contrasenaPre = "",
+            rolPre = miembroSeleccionado!!.rolNombre ?: "Miembro",
+            puestoPre = miembroSeleccionado!!.puesto,
+            salarioPre = miembroSeleccionado!!.salarioQuincenal.toString(),
+            fechaPre = "N/A",
             onDismiss = { showEditarDialog = false },
-            onGuardar = {
-                showEditarDialog = false
-            }
+            onGuardar = { showEditarDialog = false }
         )
     }
 
-    //Dialogo de eliminar
-    if (showEliminarMiembroDialog) {
+    if (showEliminarMiembroDialog && miembroSeleccionado != null) {
         EliminarMiembroDialog(
-            nombre = miembroSeleccionado,
-            matricula = "20213UT0045",
-            onDismiss = {
-                showEliminarMiembroDialog = false
-            },
-            onConfirmarEliminar = {
-                println("Eliminando a: $miembroSeleccionado")
-                showEliminarMiembroDialog = false
-
-            }
+            nombre = miembroSeleccionado!!.nombreCompleto,
+            matricula = miembroSeleccionado!!.matricula,
+            onDismiss = { showEliminarMiembroDialog = false },
+            onConfirmarEliminar = { showEliminarMiembroDialog = false }
         )
     }
 
-    //Dialog de consultar
-    if (showConsultarMiembroDialog){
+    if (showConsultarMiembroDialog && miembroSeleccionado != null) {
         ConsultarMiembroDialog(
-            nombre = miembroSeleccionado,
-            matricula = "20243ds001",    // Datos de ejemplo
-            cuatrimestre = "5",
-            grupo = "B",
-            carrera = "DS",
-            puesto = "Programador",
-            salario = "15,000.00",
-            fechaIngreso = "04/02/2026",
-            onDismiss = {
-                showConsultarMiembroDialog = false
-            }
+            nombre = miembroSeleccionado!!.nombreCompleto,
+            matricula = miembroSeleccionado!!.matricula,
+            cuatrimestre = miembroSeleccionado!!.cuatrimestre.toString(),
+            grupo = miembroSeleccionado!!.grupo,
+            carrera = miembroSeleccionado!!.carrera,
+            puesto = miembroSeleccionado!!.puesto,
+            salario = miembroSeleccionado!!.salarioQuincenal.toString(),
+            fechaIngreso = "N/A",
+            onDismiss = { showConsultarMiembroDialog = false }
         )
     }
 
-    //Dialog historial miembro
     if (showHistorialMiembroDialog){
         HistorialMiembroDialog(
             nombre = "Marcos Ortíz",
@@ -280,14 +316,4 @@ fun HomeLiderScreen(navController: NavController) {
             onDismiss = { showHistorialMiembroDialog = false }
         )
     }
-
 }
-
-/*
-@Preview(showBackground = true, showSystemUi = true)
-@Composable
-fun HomeLiderPreview() {
-    SigproTheme {
-        HomeLiderScreen()
-    }
-}*/
