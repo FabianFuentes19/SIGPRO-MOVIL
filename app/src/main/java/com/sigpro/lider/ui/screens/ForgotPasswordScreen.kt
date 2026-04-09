@@ -88,6 +88,7 @@ fun ForgotPasswordScreen(
                     onValueChange = {
                         usuario = it
                         isError = false
+                        if (viewModel.mensajeError != null) viewModel.limpiarError()
                     },
                     placeholder = { Text("20243ds047", color = Color.LightGray) },
                     singleLine = true,
@@ -109,6 +110,25 @@ fun ForgotPasswordScreen(
                     ),
                     modifier = Modifier.fillMaxWidth()
                 )
+                if (isError) {
+                    Text(
+                        text = "Favor de ingresar tu matrícula",
+                        color = Color.Red,
+                        fontSize = 12.sp,
+                        textAlign = TextAlign.Left,
+                        modifier = Modifier.fillMaxWidth().padding(start = 4.dp)
+                    )
+                } else {
+                    viewModel.mensajeError?.let {
+                        Text(
+                            text = it,
+                            color = Color.Red,
+                            fontSize = 12.sp,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    }
+                }
 
                 Spacer(modifier = Modifier.height(8.dp))
 
