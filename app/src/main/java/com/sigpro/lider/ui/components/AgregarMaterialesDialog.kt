@@ -26,6 +26,8 @@ fun AgregarMaterialDialog(
     var precio by remember { mutableStateOf("") }
 
     var errorVisible by remember { mutableStateOf(false) }
+    var errorCantidad by remember { mutableStateOf(false) }
+    var errorPrecio by remember { mutableStateOf(false) }
 
     Dialog(onDismissRequest = onDismiss) {
         Surface(
@@ -49,11 +51,11 @@ fun AgregarMaterialDialog(
                 CustomLabelField(
                     label = "Nombre del Material *",
                     value = nombre,
-                    placeholder = "Ej. Cemento Tolteca"
+                    placeholder = "Ej. Cemento Tolteca",
+                    isError = errorVisible && nombre.isBlank()
                 ) {
                     nombre = it
-                    errorVisible = false
-                }
+                    if (it.isNotBlank()) errorVisible = false                }
 
                 Spacer(modifier = Modifier.height(16.dp))
 
@@ -63,10 +65,17 @@ fun AgregarMaterialDialog(
                             label = "Cantidad *",
                             value = cantidad,
                             placeholder = "Ej. 10",
-                            isNumber = true
-                        ) {
-                            cantidad = it
-                            errorVisible = false
+                            isNumber = true,
+                            isError = (errorVisible && cantidad.isBlank()) || errorCantidad
+                        ) { input ->
+                            if (input.isEmpty() || input.all { it.isDigit() || it == '.' }) {
+                                cantidad = input
+                                errorCantidad = false
+                                if (input.isNotBlank()) errorVisible = false
+                            }
+                        }
+                        if (errorCantidad) {
+                            Text("Cantidad inválida", color = Color.Red, fontSize = 10.sp)
                         }
                     }
                     Spacer(modifier = Modifier.width(16.dp))
@@ -75,10 +84,17 @@ fun AgregarMaterialDialog(
                             label = "Precio Unitario *",
                             value = precio,
                             placeholder = "Ej. 150.00",
-                            isNumber = true
-                        ) {
-                            precio = it
-                            errorVisible = false
+                            isNumber = true,
+                            isError = (errorVisible && precio.isBlank()) || errorPrecio
+                        ) { input ->
+                            if (input.isEmpty() || input.all { it.isDigit() || it == '.' }) {
+                                precio = input
+                                errorPrecio = false
+                                if (input.isNotBlank()) errorVisible = false
+                            }
+                        }
+                        if (errorPrecio) {
+                            Text("Precio inválido", color = Color.Red, fontSize = 10.sp)
                         }
                     }
                 }
@@ -108,10 +124,15 @@ fun AgregarMaterialDialog(
 
                     Button(
                         onClick = {
-                            if (nombre.isNotBlank() && cantidad.isNotBlank() && precio.isNotBlank()) {
+                            val cantValida = cantidad.toDoubleOrNull() != null
+                            val precioValido = precio.toDoubleOrNull() != null
+
+                            if (nombre.isNotBlank() && cantValida && precioValido) {
                                 onRegistrar(nombre, cantidad, precio)
                             } else {
-                                errorVisible = true
+                                if (nombre.isBlank() || cantidad.isBlank() || precio.isBlank()) errorVisible = true
+                                if (!cantValida && cantidad.isNotBlank()) errorCantidad = true
+                                if (!precioValido && precio.isNotBlank()) errorPrecio = true
                             }
                         },
                         modifier = Modifier.weight(1f).height(50.dp),
@@ -132,13 +153,14 @@ fun CustomLabelField(
     value: String,
     placeholder: String,
     isNumber: Boolean = false,
+    isError: Boolean = false,
     onValueChange: (String) -> Unit
 ) {
     Column(modifier = Modifier.fillMaxWidth()) {
         Text(
             text = label,
             fontSize = 13.sp,
-            color = GrisTextoSecundario,
+            color = if (isError) Color.Red else GrisTextoSecundario,
             fontWeight = FontWeight.SemiBold
         )
         Spacer(modifier = Modifier.height(6.dp))
@@ -149,11 +171,13 @@ fun CustomLabelField(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(10.dp),
             singleLine = true,
+            isError = isError,
             keyboardOptions = if (isNumber) KeyboardOptions(keyboardType = KeyboardType.Decimal) else KeyboardOptions.Default,
             colors = TextFieldDefaults.outlinedTextFieldColors(
                 focusedBorderColor = AzulPrimario,
                 unfocusedBorderColor = Color(0xFFD1D1D1),
-                backgroundColor = Color(0xFFF9F9F9)
+                backgroundColor = Color(0xFFF9F9F9),
+                errorBorderColor = Color.Red
             )
         )
     }
