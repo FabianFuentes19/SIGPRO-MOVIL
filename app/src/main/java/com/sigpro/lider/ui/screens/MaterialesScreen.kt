@@ -149,6 +149,34 @@ fun MaterialesScreen(
                 Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     CircularProgressIndicator(color = AzulPrimario)
                 }
+            } else if (viewModel.materialesFiltrados.isEmpty()) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(top = 40.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Icon(
+                            imageVector = Icons.Default.Search,
+                            contentDescription = null,
+                            modifier = Modifier.size(64.dp),
+                            tint = GrisTextoSecundario.copy(alpha = 0.5f)
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Text(
+                            text = "Material no encontrado",
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = GrisTextoSecundario
+                        )
+                        Text(
+                            text = "Intenta con otro nombre o palabra clave",
+                            fontSize = 14.sp,
+                            color = GrisTextoSecundario.copy(alpha = 0.7f)
+                        )
+                    }
+                }
             } else {
                 LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     items(viewModel.materialesFiltrados) { material ->
