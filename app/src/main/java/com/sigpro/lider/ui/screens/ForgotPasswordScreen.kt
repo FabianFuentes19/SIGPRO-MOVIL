@@ -30,6 +30,8 @@ fun ForgotPasswordScreen(
     var usuario by remember { mutableStateOf("") }
     var isError by remember { mutableStateOf(false) }
 
+    val mostrarErrorVisual = isError || viewModel.mensajeError != null
+
     LaunchedEffect(viewModel.pasoCompletado) {
         if (viewModel.pasoCompletado) {
             onGoToVerify()
@@ -92,7 +94,7 @@ fun ForgotPasswordScreen(
                     },
                     placeholder = { Text("20243ds047", color = Color.LightGray) },
                     singleLine = true,
-                    isError = isError,
+                    isError = mostrarErrorVisual,
                     leadingIcon = {
                         Icon(
                             painter = painterResource(id = R.drawable.icon_user),
@@ -115,19 +117,17 @@ fun ForgotPasswordScreen(
                         text = "Favor de ingresar tu matrícula",
                         color = Color.Red,
                         fontSize = 12.sp,
-                        textAlign = TextAlign.Left,
+                        textAlign = TextAlign.Start,
                         modifier = Modifier.fillMaxWidth().padding(start = 4.dp)
                     )
-                } else {
-                    viewModel.mensajeError?.let {
-                        Text(
-                            text = it,
-                            color = Color.Red,
-                            fontSize = 12.sp,
-                            textAlign = TextAlign.Center,
-                            modifier = Modifier.fillMaxWidth()
-                        )
-                    }
+                } else if (viewModel.mensajeError != null) {
+                    Text(
+                        text = viewModel.mensajeError!!,
+                        color = Color.Red,
+                        fontSize = 12.sp,
+                        textAlign = TextAlign.Start,
+                        modifier = Modifier.fillMaxWidth().padding(start = 4.dp)
+                    )
                 }
 
                 Spacer(modifier = Modifier.height(8.dp))
@@ -155,9 +155,6 @@ fun ForgotPasswordScreen(
                             fontWeight = FontWeight.Bold,
                             fontSize = 16.sp
                         )
-                    }
-                    viewModel.mensajeError?.let {
-                        Text(it, color = Color.Red, fontSize = 12.sp, textAlign = TextAlign.Center)
                     }
 
                     TextButton(
