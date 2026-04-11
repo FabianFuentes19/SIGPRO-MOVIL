@@ -13,6 +13,8 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.sigpro.lider.ui.screens.*
 import com.sigpro.lider.ui.theme.SigproTheme
+import androidx.navigation.NavController
+import com.sigpro.lider.session.SessionManager
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -39,9 +41,8 @@ fun AppNavigation() {
             LoginScreen(
                 onForgotPassword = { navController.navigate("forgot") },
                 onLoginSucces = {
-                    navController.navigate("home") {
-                        popUpTo("login") { inclusive = true }
-                    }
+                    val rol = SessionManager.getRol() ?: "MIEMBRO"
+                    MapsByRole(navController, rol)
                 }
             )
         }
@@ -77,6 +78,10 @@ fun AppNavigation() {
             HomeLiderScreen(navController = navController)
         }
 
+        composable("home_miembro") {
+            HomeMiembroScreen(navController = navController)
+        }
+
 
         composable("nominas") {
             HistorialNominasScreen(navController = navController)
@@ -92,6 +97,18 @@ fun AppNavigation() {
         ) { backStackEntry ->
             val id = backStackEntry.arguments?.getLong("proyectoId") ?: 0L
             MaterialesScreen(navController, id)
+        }
+    }
+}
+
+fun MapsByRole(navController: NavController, rol: String?) {
+    if (rol?.uppercase() == "LIDER") {
+        navController.navigate("home") {
+            popUpTo("login") { inclusive = true }
+        }
+    } else {
+        navController.navigate("home_miembro") {
+            popUpTo("login") { inclusive = true }
         }
     }
 }
