@@ -52,6 +52,10 @@ fun HomeLiderScreen(
         viewModel.cargarProyecto()
     }
 
+    LaunchedEffect(Unit) {
+        viewModel.cargarProyecto()
+    }
+
     val proyecto = viewModel.proyecto
     val azulMarino = Color(0xFF00334E)
     val doradoBoton = Color(0xFFA68238)
@@ -307,13 +311,22 @@ fun HomeLiderScreen(
         )
     }
 
-    if (showHistorialMiembroDialog){
+
+    if (showHistorialMiembroDialog && miembroSeleccionado != null) {
+        LaunchedEffect(miembroSeleccionado) {
+            viewModel.cargarPagosMiembro(miembroSeleccionado!!.matricula)
+        }
+
         HistorialMiembroDialog(
-            nombre = "Marcos Ortíz",
-            puesto = "Diseñador gráfico",
-            totalAcumulado = "$15,000.00",
-            listaPagos = pagosDePrueba,
-            onDismiss = { showHistorialMiembroDialog = false }
+            nombre = miembroSeleccionado!!.nombreCompleto,
+            puesto = miembroSeleccionado!!.puesto,
+            totalAcumulado = String.format("$%.2f", viewModel.listaPagosMiembro.sumOf { it.monto.toDouble() }),
+            listaPagos = viewModel.listaPagosMiembro.map { Pago(it.fecha.toString(), "$${it.monto}") },
+            cargando = viewModel.cargando,
+            onDismiss = {
+                showHistorialMiembroDialog = false
+                viewModel.listaPagosMiembro.clear()
+            }
         )
     }
 }

@@ -55,4 +55,8 @@ interface ApiService {
 
     @POST("auth/verificar-codigo")
     suspend fun verificarCodigo(@Body body: Map<String, String>): Response<Map<String, String>>
+
+    @GET("pagos/miembro/{matricula}")
+    suspend fun obtenerPagosPorMatricula(@Path("matricula") matricula: String): Response<List<PagoResponseDTO>>
+
 }
