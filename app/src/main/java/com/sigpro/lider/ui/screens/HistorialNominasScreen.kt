@@ -151,7 +151,6 @@ fun HistorialNominasScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Botones de Filtro
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
