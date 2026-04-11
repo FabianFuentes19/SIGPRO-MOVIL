@@ -102,17 +102,15 @@ fun CardNominaItem(
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            // --- BOTÓN DESHABILITADO VS ACTIVO ---
             Button(
                 onClick = { if (!nomina.isPagado) onPagarClick() },
                 modifier = Modifier.fillMaxWidth().height(50.dp),
                 shape = RoundedCornerShape(12.dp),
-                // Si está pagado, usamos un gris claro, si no, el VerdeExito
                 colors = ButtonDefaults.buttonColors(
                     backgroundColor = if (nomina.isPagado) Color(0xFFF5F5F5) else VerdeExito,
                     disabledBackgroundColor = Color(0xFFF5F5F5)
                 ),
-                enabled = !nomina.isPagado, // Deshabilita el click
+                enabled = !nomina.isPagado,
                 elevation = if (nomina.isPagado) ButtonDefaults.elevation(0.dp) else ButtonDefaults.elevation(2.dp)
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
