@@ -16,16 +16,15 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.sigpro.lider.ui.screens.NominaData
 import com.sigpro.lider.ui.theme.*
-
 @Composable
 fun CardNominaItem(
     nomina: NominaData,
     onPagarClick: () -> Unit
 ) {
     val fondoCard = BlancoPuro
-    val colorTextoPrincipal = if (nomina.isPagado) Color(0xFF9E9E9E) else NegroTexto
-    val colorTextoSecundario = if (nomina.isPagado) Color(0xFFBDBDBD) else GrisTextoSecundario
-    val colorMonto = if (nomina.isPagado) Color(0xFFBDBDBD) else AzulPrimario
+    val colorTextoPrincipal = NegroTexto
+    val colorTextoSecundario = GrisTextoSecundario
+    val colorMonto = AzulPrimario
 
     Card(
         shape = RoundedCornerShape(24.dp),
@@ -64,8 +63,8 @@ fun CardNominaItem(
                     Text(text = "$${nomina.monto}", fontSize = 28.sp, fontWeight = FontWeight.Bold, color = colorMonto)
                 }
 
-                val badgeColor = if (nomina.isPagado) Color(0xFFE0E0E0) else Color(0xFFFFFDE7)
-                val badgeTextColor = if (nomina.isPagado) Color(0xFF616161) else Color(0xFFFBC02D)
+                val badgeColor = if (nomina.isPagado) Color(0xFFE0F2F1) else Color(0xFFFFFDE7)
+                val badgeTextColor = if (nomina.isPagado) Color(0xFF00897B) else Color(0xFFFBC02D)
 
                 Surface(
                     color = badgeColor,
@@ -81,41 +80,50 @@ fun CardNominaItem(
                 }
             }
 
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-                Icon(Icons.Outlined.CalendarToday, contentDescription = null, tint = colorTextoSecundario, modifier = Modifier.size(14.dp))
-                Spacer(modifier = Modifier.width(4.dp))
-                Text(text = nomina.fecha, fontSize = 12.sp, color = colorTextoSecundario)
+            Column(modifier = Modifier.fillMaxWidth(), horizontalAlignment = Alignment.End) {
+                    Text(
+                        text = "Fecha pago",
+                        fontSize = 10.sp,
+                        color = colorTextoSecundario,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.padding(bottom = 2.dp)
+                    )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        Icons.Outlined.CalendarToday,
+                        contentDescription = null,
+                        tint = colorTextoSecundario,
+                        modifier = Modifier.size(14.dp)
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text(text = nomina.fecha, fontSize = 12.sp, color = colorTextoSecundario)
+                }
             }
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            if (!nomina.isPagado) {
-                Button(
-                    onClick = onPagarClick,
-                    modifier = Modifier.fillMaxWidth().height(50.dp),
-                    shape = RoundedCornerShape(12.dp),
-                    colors = ButtonDefaults.buttonColors(backgroundColor = VerdeExito)
-                ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(Icons.Outlined.Money, contentDescription = null, tint = BlancoPuro)
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text("Pagar Nómina", color = BlancoPuro, fontWeight = FontWeight.Bold)
-                    }
-                }
-            } else {
-                Surface(
-                    color = Color(0xFFF5F5F5),
-                    shape = RoundedCornerShape(12.dp),
-                    modifier = Modifier.fillMaxWidth().height(50.dp)
-                ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.Center,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
+            // --- BOTÓN DESHABILITADO VS ACTIVO ---
+            Button(
+                onClick = { if (!nomina.isPagado) onPagarClick() },
+                modifier = Modifier.fillMaxWidth().height(50.dp),
+                shape = RoundedCornerShape(12.dp),
+                // Si está pagado, usamos un gris claro, si no, el VerdeExito
+                colors = ButtonDefaults.buttonColors(
+                    backgroundColor = if (nomina.isPagado) Color(0xFFF5F5F5) else VerdeExito,
+                    disabledBackgroundColor = Color(0xFFF5F5F5)
+                ),
+                enabled = !nomina.isPagado, // Deshabilita el click
+                elevation = if (nomina.isPagado) ButtonDefaults.elevation(0.dp) else ButtonDefaults.elevation(2.dp)
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    if (nomina.isPagado) {
                         Icon(Icons.Outlined.CheckCircleOutline, contentDescription = null, tint = Color(0xFFBDBDBD))
                         Spacer(modifier = Modifier.width(8.dp))
                         Text("Pagado con éxito", color = Color(0xFFBDBDBD), fontWeight = FontWeight.Bold)
+                    } else {
+                        Icon(Icons.Outlined.Money, contentDescription = null, tint = BlancoPuro)
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("Pagar Nómina", color = BlancoPuro, fontWeight = FontWeight.Bold)
                     }
                 }
             }
