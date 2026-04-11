@@ -3,7 +3,10 @@ package com.sigpro.lider.ui.components
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.* import androidx.compose.runtime.Composable
+import androidx.compose.material.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.DateRange // IMPORTANTE
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -32,7 +35,7 @@ fun ProyectoCard(
         elevation = 4.dp
     ) {
         Column {
-
+            // Barra superior verde
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -62,7 +65,23 @@ fun ProyectoCard(
                         .padding(8.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(text = "📅", modifier = Modifier.padding(end = 8.dp))
+                    Surface(
+                        color = Color(0xFFE0F2F1), // Verde muy claro
+                        shape = RoundedCornerShape(6.dp),
+                        modifier = Modifier.size(36.dp)
+                    ) {
+                        Box(contentAlignment = Alignment.Center) {
+                            Icon(
+                                imageVector = Icons.Default.DateRange,
+                                contentDescription = null,
+                                tint = Color(0xFF00897B), // Verde del tema
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.width(12.dp))
+
                     Column {
                         Text("FECHA", fontSize = 10.sp, color = Color.Gray, fontWeight = FontWeight.Bold)
                         Text("$fechaInicio — $fechaFin", fontSize = 14.sp, fontWeight = FontWeight.Medium)
