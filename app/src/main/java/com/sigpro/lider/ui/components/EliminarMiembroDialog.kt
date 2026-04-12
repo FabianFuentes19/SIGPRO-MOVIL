@@ -24,7 +24,7 @@ fun EliminarMiembroDialog(
     nombre: String,
     matricula: String,
     onDismiss: () -> Unit,
-    onConfirmarEliminar: () -> Unit
+    onConfirmarEliminar: (String) -> Unit
 ) {
     val azulMarino = Color(0xFF00334E)
     val rojoAdvertencia = Color(0xFFE53935)
@@ -37,12 +37,12 @@ fun EliminarMiembroDialog(
             color = Color.White,
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(vertical = 10.dp),
+                .padding(horizontal = 4.dp),
             elevation = 16.dp
         ) {
             Column(
                 modifier = Modifier
-                    .padding(horizontal = 24.dp, vertical = 20.dp),
+                    .padding(horizontal = 24.dp, vertical = 24.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Box(
@@ -59,19 +59,19 @@ fun EliminarMiembroDialog(
                     )
                 }
 
-                Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(20.dp))
 
                 Text(
                     text = "Eliminar miembro",
-                    fontSize = 22.sp,
+                    fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color.Black
                 )
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(12.dp))
 
                 Text(
-                    text = "¿Estás seguro de que deseas eliminar a este miembro?",
+                    text = "¿Estás seguro de que deseas eliminar a este miembro del equipo?",
                     fontSize = 14.sp,
                     color = Color.Gray,
                     textAlign = TextAlign.Center,
@@ -87,19 +87,27 @@ fun EliminarMiembroDialog(
                 ) {
                     Column(
                         modifier = Modifier.padding(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                        verticalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
-                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
                             Text(text = "Nombre", fontSize = 13.sp, color = Color.Gray)
                             Text(
                                 text = nombre,
                                 fontSize = 13.sp,
                                 fontWeight = FontWeight.SemiBold,
-                                color = azulMarino
+                                color = azulMarino,
+                                textAlign = TextAlign.End,
+                                modifier = Modifier.weight(1f).padding(start = 8.dp)
                             )
                         }
-                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                            Text(text = "Matrícula:", fontSize = 13.sp, color = Color.Gray)
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text(text = "Matrícula", fontSize = 13.sp, color = Color.Gray)
                             Text(
                                 text = matricula,
                                 fontSize = 13.sp,
@@ -114,30 +122,26 @@ fun EliminarMiembroDialog(
 
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     OutlinedButton(
                         onClick = onDismiss,
                         modifier = Modifier
                             .weight(1f)
                             .height(48.dp),
-                        shape = RoundedCornerShape(10.dp),
+                        shape = RoundedCornerShape(12.dp),
                         border = BorderStroke(1.dp, Color(0xFFD1D5DB)),
                         colors = ButtonDefaults.outlinedButtonColors(contentColor = azulMarino)
                     ) {
                         Text("Cancelar", fontWeight = FontWeight.Medium)
                     }
 
-                    Spacer(modifier = Modifier.width(16.dp))
-
                     Button(
-                        onClick = {
-                            onConfirmarEliminar()
-                        },
+                        onClick = { onConfirmarEliminar(matricula) },
                         modifier = Modifier
                             .weight(1f)
                             .height(48.dp),
-                        shape = RoundedCornerShape(10.dp),
+                        shape = RoundedCornerShape(12.dp),
                         colors = ButtonDefaults.buttonColors(backgroundColor = rojoAdvertencia),
                         elevation = ButtonDefaults.elevation(defaultElevation = 0.dp)
                     ) {
@@ -150,26 +154,5 @@ fun EliminarMiembroDialog(
                 }
             }
         }
-    }
-}
-
-@Preview(showBackground = true, showSystemUi = true)
-@Composable
-fun EliminarMiembroPreview() {
-
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color(0xFF1F2937)),
-        contentAlignment = Alignment.Center
-    ) {
-        EliminarMiembroDialog(
-            nombre = "Juan Pérez García",
-            matricula = "20213UT0045",
-            onDismiss = {
-            },
-            onConfirmarEliminar = {
-            }
-        )
     }
 }

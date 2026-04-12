@@ -24,7 +24,7 @@ fun ConsultarMiembroDialog(
     carrera: String,
     puesto: String,
     salario: String,
-    fechaIngreso: String,
+    //fechaIngreso: String,
     onDismiss: () -> Unit
 ) {
     val azulMarino = Color(0xFF00334E)
@@ -60,7 +60,7 @@ fun ConsultarMiembroDialog(
 
                 Row(modifier = Modifier.fillMaxWidth()) {
                     Column(modifier = Modifier.weight(1f)) {
-                        InfoCampo(label = "CUATRISMSTRE", value = cuatrimestre)
+                        InfoCampo(label = "CUATRIMESTRE", value = cuatrimestre)
                     }
                     Column(modifier = Modifier.weight(1f)) {
                         InfoCampo(label = "GRUPO", value = grupo)
@@ -86,7 +86,7 @@ fun ConsultarMiembroDialog(
                 }
 
                 InfoCampo(label = "SALARIO QUINCENAL", value = salario)
-                InfoCampo(label = "FECHA DE INGRESO", value = fechaIngreso)
+                //InfoCampo(label = "FECHA DE INGRESO", value = fechaIngreso)
 
                 Spacer(modifier = Modifier.height(32.dp))
 

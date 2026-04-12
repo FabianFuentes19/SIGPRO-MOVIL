@@ -6,10 +6,13 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.ExitToApp
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Payments
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.outlined.Lock
+import androidx.compose.material.icons.outlined.Password
 import androidx.compose.material.icons.outlined.Payments
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -39,6 +42,8 @@ fun PerfilLideresScreen(
     val listaPagos by viewModel.pagos.collectAsState()
     val usuario = viewModel.usuario
     val cargando = viewModel.cargando
+
+    var showCambiarPasswordDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
         val matricula = SessionManager.getMatricula()
@@ -121,11 +126,62 @@ fun PerfilLideresScreen(
                             InfoRow(label = "Nombre", value = usuario?.nombreCompleto ?: "No disponible")
                             InfoRow(label = "Matrícula", value = usuario?.matricula ?: "-")
                             InfoRow(label = "Cuatrimestre", value = usuario?.cuatrimestre?.toString() ?: "-")
-                            InfoRow(label = "Carrera", value = usuario?.carrera ?: "DSM")
-                            InfoRow(label = "Puesto", value = usuario?.puesto ?: "Líder de Proyecto")
+                            InfoRow(label = "Carrera", value = usuario?.carrera ?: "-")
+                            InfoRow(label = "Puesto", value = usuario?.puesto ?: "-")
                         }
                     }
                     Spacer(modifier = Modifier.height(16.dp))
+                }
+
+                item {
+                    SeccionHeader(titulo = "Seguridad", icono = Icons.Outlined.Lock)
+                    Card(
+                        shape = RoundedCornerShape(12.dp),
+                        elevation = 2.dp,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 8.dp)
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.weight(1f)) {
+                                Icon(
+                                    imageVector = Icons.Outlined.Password,
+                                    contentDescription = null,
+                                    tint = AzulPrimario
+                                )
+                                Spacer(modifier = Modifier.width(12.dp))
+                                Column {
+                                    Text(
+                                        text = "Actualiza tu contraseña",
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 14.sp,
+                                        color = NegroTexto
+                                    )
+                                    Text(
+                                        text = "Cambia tu clave de acceso",
+                                        color = Color.Gray,
+                                        fontSize = 11.sp
+                                    )
+                                }
+                            }
+                            TextButton(
+                                onClick = {
+                                    showCambiarPasswordDialog = true
+                                },
+                                colors = ButtonDefaults.textButtonColors(contentColor = AzulPrimario)
+                            ) {
+                                Text("CAMBIAR", fontWeight = FontWeight.ExtraBold)
+                                Icon(Icons.Default.ChevronRight, contentDescription = null)
+                            }
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(8.dp))
                 }
 
                 item {
@@ -154,5 +210,14 @@ fun PerfilLideresScreen(
                 }
             }
         }
+    }
+
+    if (showCambiarPasswordDialog) {
+        CambiarContrasenaDialog(
+            onDismiss = { showCambiarPasswordDialog = false },
+            onGuardar = { actual, nueva ->
+                showCambiarPasswordDialog = false
+            }
+        )
     }
 }

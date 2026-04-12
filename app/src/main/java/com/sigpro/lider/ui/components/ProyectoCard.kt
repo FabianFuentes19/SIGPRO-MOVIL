@@ -35,7 +35,6 @@ fun ProyectoCard(
         elevation = 4.dp
     ) {
         Column {
-            // Barra superior verde
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -66,7 +65,7 @@ fun ProyectoCard(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Surface(
-                        color = Color(0xFFE0F2F1), // Verde muy claro
+                        color = Color(0xFFE0F2F1),
                         shape = RoundedCornerShape(6.dp),
                         modifier = Modifier.size(36.dp)
                     ) {
@@ -74,7 +73,7 @@ fun ProyectoCard(
                             Icon(
                                 imageVector = Icons.Default.DateRange,
                                 contentDescription = null,
-                                tint = Color(0xFF00897B), // Verde del tema
+                                tint = Color(0xFF00897B),
                                 modifier = Modifier.size(20.dp)
                             )
                         }

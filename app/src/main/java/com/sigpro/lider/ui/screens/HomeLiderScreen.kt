@@ -43,11 +43,6 @@ fun HomeLiderScreen(
     var showHistorialMiembroDialog by remember { mutableStateOf(false) }
     var miembroSeleccionado by remember { mutableStateOf<UsuarioDTO?>(null) }
 
-    val pagosDePrueba = listOf(
-        Pago("11 DE FEB, 2026", "$15,000.00"),
-        Pago("28 DE ENE, 2026", "$15,000.00"),
-    )
-
     LaunchedEffect(Unit) {
         viewModel.cargarProyecto()
     }
@@ -245,8 +240,9 @@ fun HomeLiderScreen(
                             showEliminarMiembroDialog = true
                         },
                         onDetalles = {
-                            miembroSeleccionado = miembro
-                            showConsultarMiembroDialog = true
+                            viewModel.cargarDetalleMiembro(miembro.matricula) {
+                                showConsultarMiembroDialog = true
+                            }
                         },
                         onHistorial = {
                             miembroSeleccionado = miembro
@@ -282,9 +278,12 @@ fun HomeLiderScreen(
             rolPre = miembroSeleccionado!!.rolNombre ?: "Miembro",
             puestoPre = miembroSeleccionado!!.puesto,
             salarioPre = miembroSeleccionado!!.salarioQuincenal.toString(),
-            fechaPre = "N/A",
+            fechaPre = miembroSeleccionado!!.fechaIngreso.toString(),
             onDismiss = { showEditarDialog = false },
-            onGuardar = { showEditarDialog = false }
+            onGuardar = { usuarioEditado ->
+                viewModel.editarMiembro(context, miembroSeleccionado!!.matricula, usuarioEditado)
+                showEditarDialog = false
+            }
         )
     }
 
@@ -292,21 +291,29 @@ fun HomeLiderScreen(
         EliminarMiembroDialog(
             nombre = miembroSeleccionado!!.nombreCompleto,
             matricula = miembroSeleccionado!!.matricula,
-            onDismiss = { showEliminarMiembroDialog = false },
-            onConfirmarEliminar = { showEliminarMiembroDialog = false }
+            onDismiss = {
+                showEliminarMiembroDialog = false
+                miembroSeleccionado = null
+            },
+            onConfirmarEliminar = {
+                viewModel.eliminarMiembro(context, miembroSeleccionado!!.matricula)
+                showEliminarMiembroDialog = false
+                miembroSeleccionado = null
+            }
         )
     }
 
-    if (showConsultarMiembroDialog && miembroSeleccionado != null) {
+    if (showConsultarMiembroDialog && viewModel.miembroDetallado != null) {
+        val m = viewModel.miembroDetallado!!
         ConsultarMiembroDialog(
-            nombre = miembroSeleccionado!!.nombreCompleto,
-            matricula = miembroSeleccionado!!.matricula,
-            cuatrimestre = miembroSeleccionado!!.cuatrimestre.toString(),
-            grupo = miembroSeleccionado!!.grupo,
-            carrera = miembroSeleccionado!!.carrera,
-            puesto = miembroSeleccionado!!.puesto,
-            salario = miembroSeleccionado!!.salarioQuincenal.toString(),
-            fechaIngreso = "N/A",
+            nombre = m.nombreCompleto,
+            matricula = m.matricula,
+            cuatrimestre = m.cuatrimestre.toString(),
+            grupo = m.grupo,
+            carrera = m.carrera,
+            puesto = m.puesto,
+            salario = m.salarioQuincenal.toString(),
+            //fechaIngreso = m.fechaIngreso ?: "Sin fecha",
             onDismiss = { showConsultarMiembroDialog = false }
         )
     }

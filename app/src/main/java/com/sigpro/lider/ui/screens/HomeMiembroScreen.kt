@@ -7,25 +7,69 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
+import androidx.compose.material.icons.outlined.Lock
+import androidx.compose.material.icons.outlined.Password
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
+import com.sigpro.lider.session.SessionManager
+import com.sigpro.lider.ui.components.CambiarContrasenaDialog
+import com.sigpro.lider.ui.components.LogoutDialog
+import com.sigpro.lider.ui.components.SeccionHeader
 import com.sigpro.lider.ui.theme.*
+import com.sigpro.lider.viewmodel.HomeMiembroViewModel
 
 @Composable
-fun HomeMiembroScreen(navController: NavController) {
+fun HomeMiembroScreen(
+    navController: NavController,
+    viewModel: HomeMiembroViewModel = viewModel()
+) {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
 
+    var showLogoutDialog by remember { mutableStateOf(false) }
+    var showCambiarPasswordDialog by remember { mutableStateOf(false) }
+
+    // --- CAMBIO: Vinculación con las variables del ViewModel ---
+    val usuario = viewModel.miembroDetallado
+    val proyecto = viewModel.proyecto
+    val cargando = viewModel.cargando
+
     val azulMarino = Color(0xFF00334E)
     val verdeTurquesa = Color(0xFF009688)
+
+    // --- CAMBIO: Unificación de carga en un solo LaunchedEffect ---
+    LaunchedEffect(Unit) {
+        viewModel.cargarProyecto()
+    }
+
+    if (showLogoutDialog) {
+        LogoutDialog(
+            onDismiss = { showLogoutDialog = false },
+            onConfirm = {
+                showLogoutDialog = false
+                navController.navigate("login") {
+                    popUpTo("home") { inclusive = true }
+                }
+            }
+        )
+    }
+
+    if (showCambiarPasswordDialog) {
+        CambiarContrasenaDialog(
+            onDismiss = { showCambiarPasswordDialog = false },
+            onGuardar = { actual, nueva ->
+                showCambiarPasswordDialog = false
+            }
+        )
+    }
 
     Scaffold(
         backgroundColor = Color(0xFFF5F5F5),
@@ -34,12 +78,12 @@ fun HomeMiembroScreen(navController: NavController) {
                 title = { Text("Perfil", color = BlancoPuro, fontWeight = FontWeight.Bold) },
                 backgroundColor = AzulPrimario,
                 actions = {
-                    IconButton(onClick = {
-                        navController.navigate("login") {
-                            popUpTo(0) { inclusive = true }
-                        }
-                    }) {
-                        Icon(Icons.Default.ExitToApp, contentDescription = "Cerrar sesión", tint = BlancoPuro)
+                    IconButton(onClick = { showLogoutDialog = true }) {
+                        Icon(
+                            Icons.Default.ExitToApp,
+                            contentDescription = "Cerrar",
+                            tint = BlancoPuro
+                        )
                     }
                 }
             )
@@ -51,12 +95,18 @@ fun HomeMiembroScreen(navController: NavController) {
                 elevation = 8.dp
             ) {
                 BottomNavigationItem(
-                    icon = { Icon(Icons.Default.Payments, contentDescription = null, modifier = Modifier.size(24.dp)) },
+                    icon = {
+                        Icon(
+                            Icons.Default.Payments,
+                            contentDescription = null,
+                            modifier = Modifier.size(24.dp)
+                        )
+                    },
                     label = { Text(text = "Nóminas", fontSize = 12.sp) },
-                    selected = currentRoute == "nominas",
+                    selected = currentRoute == "nominas_miembro",
                     onClick = {
-                        if (currentRoute != "nominas") {
-                            navController.navigate("nominas") {
+                        if (currentRoute != "nominas_miembro") {
+                            navController.navigate("nominas_miembro") {
                                 launchSingleTop = true
                                 restoreState = true
                             }
@@ -66,7 +116,13 @@ fun HomeMiembroScreen(navController: NavController) {
                 )
 
                 BottomNavigationItem(
-                    icon = { Icon(Icons.Default.Person, contentDescription = null, modifier = Modifier.size(24.dp)) },
+                    icon = {
+                        Icon(
+                            Icons.Default.Person,
+                            contentDescription = null,
+                            modifier = Modifier.size(24.dp)
+                        )
+                    },
                     label = { Text(text = "Perfil", fontSize = 12.sp) },
                     selected = currentRoute == "home_miembro",
                     onClick = {
@@ -82,102 +138,224 @@ fun HomeMiembroScreen(navController: NavController) {
             }
         }
     ) { paddingValues ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-                .padding(16.dp)
-                .verticalScroll(rememberScrollState())
-        ) {
-            Card(
-                shape = RoundedCornerShape(12.dp),
-                elevation = 4.dp,
-                modifier = Modifier.fillMaxWidth()
+        if (cargando || usuario == null) {
+            Box(
+                modifier = Modifier.fillMaxSize().padding(paddingValues),
+                contentAlignment = Alignment.Center
             ) {
-                Column {
-                    Surface(
-                        color = verdeTurquesa,
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Row(
-                            modifier = Modifier.padding(12.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Icon(Icons.Default.Person, contentDescription = null, tint = BlancoPuro)
-                            Spacer(Modifier.width(8.dp))
-                            Text("Mi Perfil", color = BlancoPuro, fontWeight = FontWeight.Bold)
+                CircularProgressIndicator(color = AzulPrimario)
+            }
+        } else {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues)
+                    .padding(16.dp)
+                    .verticalScroll(rememberScrollState())
+            ) {
+                // 1. CARD: MI PERFIL (Información Real Precargada)
+                Card(
+                    shape = RoundedCornerShape(12.dp),
+                    elevation = 4.dp,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Column {
+                        Surface(color = verdeTurquesa, modifier = Modifier.fillMaxWidth()) {
+                            Row(
+                                modifier = Modifier.padding(12.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Icon(
+                                    Icons.Default.Person,
+                                    contentDescription = null,
+                                    tint = BlancoPuro
+                                )
+                                Spacer(Modifier.width(8.dp))
+                                Text("Mi Perfil", color = BlancoPuro, fontWeight = FontWeight.Bold)
+                            }
                         }
-                    }
-
-                    Column(modifier = Modifier.padding(16.dp)) {
-                        InfoLabel(label = "NOMBRE", value = "Tania Sanchez Reyes")
-                        Spacer(Modifier.height(12.dp))
-                        Row(Modifier.fillMaxWidth()) {
-                            Box(Modifier.weight(1f)) { InfoLabel(label = "MATRICULA", value = "20243ds026") }
-                            Box(Modifier.weight(1f)) { InfoLabel(label = "CUATRIMESTRE", value = "7mo") }
-                        }
-                        Spacer(Modifier.height(12.dp))
-                        InfoLabel(label = "CARRERA", value = "Ingeniería en Tecnologías de la Información")
-                        Spacer(Modifier.height(12.dp))
-                        Text("PUESTO", fontSize = 11.sp, color = Color.Gray, fontWeight = FontWeight.Bold)
-                        Surface(
-                            color = Color(0xFFE0F2F1),
-                            shape = RoundedCornerShape(16.dp),
-                            modifier = Modifier.padding(top = 4.dp)
-                        ) {
+                        Column(modifier = Modifier.padding(16.dp)) {
+                            InfoLabel(
+                                label = "NOMBRE",
+                                value = usuario.nombreCompleto ?: "No disponible"
+                            )
+                            Spacer(Modifier.height(12.dp))
+                            Row(Modifier.fillMaxWidth()) {
+                                Box(Modifier.weight(1f)) {
+                                    InfoLabel(
+                                        label = "MATRÍCULA",
+                                        value = usuario.matricula ?: "-"
+                                    )
+                                }
+                                Box(Modifier.weight(1f)) {
+                                    InfoLabel(
+                                        label = "GRUPO", // Cambiado a GRUPO según tu ViewModel
+                                        value = usuario.grupo ?: "-"
+                                    )
+                                }
+                            }
+                            Spacer(Modifier.height(12.dp))
+                            InfoLabel(label = "CARRERA", value = usuario.carrera ?: "No asignada")
+                            Spacer(Modifier.height(12.dp))
                             Text(
-                                "Programador",
-                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
-                                color = azulMarino,
-                                fontSize = 12.sp,
+                                "PUESTO",
+                                fontSize = 11.sp,
+                                color = Color.Gray,
                                 fontWeight = FontWeight.Bold
                             )
+                            Surface(
+                                color = Color(0xFFE0F2F1),
+                                shape = RoundedCornerShape(16.dp),
+                                modifier = Modifier.padding(top = 4.dp)
+                            ) {
+                                Text(
+                                    usuario.puesto ?: "General",
+                                    modifier = Modifier.padding(
+                                        horizontal = 12.dp,
+                                        vertical = 4.dp
+                                    ),
+                                    color = azulMarino,
+                                    fontSize = 12.sp,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
                         }
                     }
                 }
-            }
 
-            Spacer(modifier = Modifier.height(20.dp))
+                Spacer(modifier = Modifier.height(20.dp))
 
-            Card(
-                shape = RoundedCornerShape(12.dp),
-                elevation = 4.dp,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Column {
-                    Surface(
-                        color = azulMarino,
-                        modifier = Modifier.fillMaxWidth()
+                // --- 2. CARD: PROYECTO ASIGNADO (DINÁMICO) ---
+                Card(
+                    shape = RoundedCornerShape(12.dp),
+                    elevation = 4.dp,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Column {
+                        Surface(color = azulMarino, modifier = Modifier.fillMaxWidth()) {
+                            Row(
+                                modifier = Modifier.padding(12.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Icon(
+                                    Icons.Default.Assignment,
+                                    contentDescription = null,
+                                    tint = BlancoPuro
+                                )
+                                Spacer(Modifier.width(8.dp))
+                                Text(
+                                    "Proyecto asignado",
+                                    color = BlancoPuro,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+                        }
+                        if (viewModel.errorMensaje != null) {
+                            Text(
+                                text = viewModel.errorMensaje!!,
+                                color = Color.Red,
+                                modifier = Modifier.padding(16.dp)
+                            )
+                        }
+                        Column(modifier = Modifier.padding(16.dp)) {
+                            if (proyecto != null) {
+                                InfoLabel(
+                                    label = "NOMBRE PROYECTO",
+                                    value = proyecto.nombre ?: "Sin nombre"
+                                )
+                                Spacer(Modifier.height(12.dp))
+                                Row(Modifier.fillMaxWidth()) {
+                                    Box(Modifier.weight(1f)) {
+                                        InfoLabel(
+                                            label = "FECHA INICIO",
+                                            value = proyecto.fechaInicio ?: "-"
+                                        )
+                                    }
+                                    Box(Modifier.weight(1f)) {
+                                        InfoLabel(
+                                            label = "FECHA FIN",
+                                            value = proyecto.fechaFin ?: "-"
+                                        )
+                                    }
+                                }
+                                Spacer(Modifier.height(12.dp))
+                                InfoLabel(
+                                    label = "OBJETIVO",
+                                    value = proyecto.objetivoGeneral ?: "No especificado"
+                                )
+                                Spacer(Modifier.height(12.dp))
+                                InfoLabel(
+                                    label = "DESCRIPCIÓN",
+                                    value = proyecto.descripcion ?: "Sin descripción"
+                                )
+                            }
+                                else if (!cargando) {
+                                    Text(
+                                        "No tienes un proyecto asignado.",
+                                        color = Color.Gray,
+                                        fontSize = 14.sp
+                                    )
+                                }
+                            }
+                        }
+                    }
+
+                Spacer(modifier = Modifier.height(20.dp))
+
+                SeccionHeader(titulo = "Seguridad", icono = Icons.Outlined.Lock)
+                Card(
+                    shape = RoundedCornerShape(12.dp),
+                    elevation = 2.dp,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 8.dp)
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
                     ) {
                         Row(
-                            modifier = Modifier.padding(12.dp),
-                            verticalAlignment = Alignment.CenterVertically
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.weight(1f)
                         ) {
-                            Icon(Icons.Default.Assignment, contentDescription = null, tint = BlancoPuro)
-                            Spacer(Modifier.width(8.dp))
-                            Text("Proyecto asignado", color = BlancoPuro, fontWeight = FontWeight.Bold)
+                            Icon(
+                                imageVector = Icons.Outlined.Password,
+                                contentDescription = null,
+                                tint = AzulPrimario
+                            )
+                            Spacer(modifier = Modifier.width(12.dp))
+                            Column {
+                                Text(
+                                    text = "Actualiza tu contraseña",
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 14.sp,
+                                    color = NegroTexto
+                                )
+                                Text(
+                                    text = "Cambia tu clave de acceso",
+                                    color = Color.Gray,
+                                    fontSize = 11.sp
+                                )
+                            }
                         }
-                    }
-
-                    Column(modifier = Modifier.padding(16.dp)) {
-                        InfoLabel(label = "NOMBRE PROYECTO", value = "Desarrollo de Plataforma Educativa")
-                        Spacer(Modifier.height(12.dp))
-                        Row(Modifier.fillMaxWidth()) {
-                            Box(Modifier.weight(1f)) { InfoLabel(label = "FECHA INICIO", value = "01 / Ene / 2024") }
-                            Box(Modifier.weight(1f)) { InfoLabel(label = "FECHA FIN", value = "31 / Dic / 2024") }
+                        TextButton(
+                            onClick = { showCambiarPasswordDialog = true },
+                            colors = ButtonDefaults.textButtonColors(contentColor = AzulPrimario)
+                        ) {
+                            Text("CAMBIAR", fontWeight = FontWeight.ExtraBold)
+                            Icon(Icons.Default.ChevronRight, contentDescription = null)
                         }
-                        Spacer(Modifier.height(12.dp))
-                        InfoLabel(label = "LIDER", value = "Juan Pérez")
-                        Spacer(Modifier.height(12.dp))
-                        InfoLabel(label = "OBJETIVO", value = "Digitalizar procesos académicos institucionales.")
-                        Spacer(Modifier.height(12.dp))
-                        InfoLabel(label = "DESCRIPCIÓN", value = "Implementación de un sistema integral para la gestión de proyectos y finanzas estudiantiles.")
                     }
                 }
+                Spacer(modifier = Modifier.height(24.dp))
             }
         }
     }
 }
+
 
 @Composable
 fun InfoLabel(label: String, value: String) {

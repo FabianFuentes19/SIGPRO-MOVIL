@@ -10,6 +10,8 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CalendarToday
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -19,6 +21,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
@@ -39,11 +42,11 @@ fun AgregarMiembroDialog(
     var contrasena by remember { mutableStateOf("") }
     var puesto by remember { mutableStateOf("") }
     var salario by remember { mutableStateOf("") }
-    var fechaIngreso by remember { mutableStateOf("04/04/2026") }
+    var fechaIngreso by remember { mutableStateOf("") }
 
-    var cuatrimestre by remember { mutableStateOf("5") }
-    var grupo by remember { mutableStateOf("A") }
-    var carrera by remember { mutableStateOf("DS") }
+    var cuatrimestre by remember { mutableStateOf("") }
+    var grupo by remember { mutableStateOf("") }
+    var carrera by remember { mutableStateOf("") }
 
     var intentoGuardar by remember { mutableStateOf(false) }
     val nombreError = intentoGuardar && nombre.isBlank()
@@ -51,14 +54,22 @@ fun AgregarMiembroDialog(
     val contrasenaError = intentoGuardar && contrasena.isBlank()
     val puestoError = intentoGuardar && puesto.isBlank()
     val salarioError = intentoGuardar && salario.isBlank()
+    val fechaIngresoError = intentoGuardar && fechaIngreso.isBlank()
+    val carreraError = intentoGuardar && carrera.isBlank()
+    val grupoError = intentoGuardar && grupo.isBlank()
+    val cuatriError = intentoGuardar && cuatrimestre.isBlank()
+
+
+
 
     var expandedCuatri by remember { mutableStateOf(false) }
     var expandedGrupo by remember { mutableStateOf(false) }
     var expandedCarrera by remember { mutableStateOf(false) }
 
-    val opcionesCuatri = listOf("1", "2", "3", "4", "5", "6")
-    val opcionesGrupo = listOf("A", "B", "C", "D")
-    val opcionesCarrera = listOf("DS", "DMI", "Meca", "Aero")
+    val opcionesCuatri = listOf("1", "2", "3", "4", "5", "6","7","8","9","10","11")
+    val opcionesGrupo = listOf("A", "B", "C", "D","E","F","G")
+    val opcionesCarrera = listOf("DS", "RD", "Meca", "Aero")
+    var contrasenaVisible by remember { mutableStateOf(false) }
 
     Dialog(onDismissRequest = onDismiss) {
         Surface(
@@ -103,37 +114,59 @@ fun AgregarMiembroDialog(
 
                 Row(modifier = Modifier.fillMaxWidth()) {
                     Column(modifier = Modifier.weight(1f)) {
-                        CustomLabel("Cuatrimestre")
+                        CustomLabel("Cuatrimestre", isError = cuatriError)
                         ExposedDropdownMenuBox(expanded = expandedCuatri, onExpandedChange = { expandedCuatri = !expandedCuatri }) {
-                            OutlinedTextField(value = cuatrimestre, onValueChange = {}, readOnly = true,
+                            OutlinedTextField(
+                                value = cuatrimestre,
+                                onValueChange = {},
+                                readOnly = true,
+                                isError = cuatriError,
+                                placeholder = { Text("") },
                                 trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedCuatri) }, shape = RoundedCornerShape(10.dp))
                             ExposedDropdownMenu(expanded = expandedCuatri, onDismissRequest = { expandedCuatri = false }) {
                                 opcionesCuatri.forEach { DropdownMenuItem(onClick = { cuatrimestre = it; expandedCuatri = false }) { Text(it) } }
                             }
                         }
+                        if (cuatriError) ErrorText("Campo obligatorio")
                     }
                     Spacer(modifier = Modifier.width(8.dp))
                     Column(modifier = Modifier.weight(1f)) {
-                        CustomLabel("Grupo")
+                        CustomLabel("Grupo",isError = grupoError)
                         ExposedDropdownMenuBox(expanded = expandedGrupo, onExpandedChange = { expandedGrupo = !expandedGrupo }) {
-                            OutlinedTextField(value = grupo, onValueChange = {}, readOnly = true,
+                            OutlinedTextField(
+                                value = grupo,
+                                onValueChange = {},
+                                readOnly = true,
+                                isError = grupoError,
+                                placeholder = { Text("") },
                                 trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedGrupo) }, shape = RoundedCornerShape(10.dp))
                             ExposedDropdownMenu(expanded = expandedGrupo, onDismissRequest = { expandedGrupo = false }) {
                                 opcionesGrupo.forEach { DropdownMenuItem(onClick = { grupo = it; expandedGrupo = false }) { Text(it) } }
                             }
                         }
+                        if (grupoError) ErrorText("Campo obligatorio")
+
                     }
                 }
 
                 Spacer(modifier = Modifier.height(12.dp))
 
-                CustomLabel("Carrera")
+                CustomLabel("Carrera",isError = carreraError)
                 ExposedDropdownMenuBox(expanded = expandedCarrera, onExpandedChange = { expandedCarrera = !expandedCarrera }) {
-                    OutlinedTextField(value = carrera, onValueChange = {}, readOnly = true, modifier = Modifier.fillMaxWidth(),
+                    OutlinedTextField(
+                        value = carrera,
+                        onValueChange = {},
+                        readOnly = true,
+                        isError = carreraError,
+                        modifier = Modifier.fillMaxWidth(),
+                        placeholder = { Text("") },
                         trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedCarrera) }, shape = RoundedCornerShape(10.dp))
                     ExposedDropdownMenu(expanded = expandedCarrera, onDismissRequest = { expandedCarrera = false }) {
                         opcionesCarrera.forEach { DropdownMenuItem(onClick = { carrera = it; expandedCarrera = false }) { Text(it) } }
                     }
+
+                    if (carreraError) ErrorText("Campo obligatorio")
+
                 }
 
                 Spacer(modifier = Modifier.height(12.dp))
@@ -144,9 +177,17 @@ fun AgregarMiembroDialog(
                     onValueChange = { contrasena = it },
                     isError = contrasenaError,
                     modifier = Modifier.fillMaxWidth(),
-                    visualTransformation = PasswordVisualTransformation(),
                     shape = RoundedCornerShape(10.dp),
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password)
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                    visualTransformation = if (contrasenaVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                    trailingIcon = {
+                        val imagen = if (contrasenaVisible) Icons.Filled.Visibility else Icons.Filled.VisibilityOff
+                        val descripcion = if (contrasenaVisible) "Ocultar contraseña" else "Mostrar contraseña"
+
+                        IconButton(onClick = { contrasenaVisible = !contrasenaVisible }) {
+                            Icon(imageVector = imagen, contentDescription = descripcion, tint = Color.Gray)
+                        }
+                    }
                 )
                 if (contrasenaError) ErrorText("Campo obligatorio")
 
@@ -177,13 +218,17 @@ fun AgregarMiembroDialog(
                         )
                         if (salarioError) ErrorText("Campo obligatorio")
                     }
-                    Spacer(modifier = Modifier.width(8.dp))
+                }
+                Spacer(modifier = Modifier.width(8.dp))
+
+                Row (modifier = Modifier.fillMaxWidth()){
                     Column(modifier = Modifier.weight(1f)) {
-                        CustomLabel("Fecha ingreso")
+                        CustomLabel("Fecha ingreso",isError = fechaIngresoError)
                         OutlinedTextField(
                             value = fechaIngreso,
                             onValueChange = {},
                             readOnly = true,
+                            isError = fechaIngresoError,
                             shape = RoundedCornerShape(10.dp),
                             trailingIcon = {
                                 IconButton(onClick = {
@@ -194,8 +239,10 @@ fun AgregarMiembroDialog(
                                 }) {
                                     Icon(Icons.Default.CalendarToday, null, tint = Color.Gray)
                                 }
+
                             }
                         )
+                        if (fechaIngresoError) ErrorText("Campo obligatorio")
                     }
                 }
 
@@ -213,9 +260,18 @@ fun AgregarMiembroDialog(
                                     matricula.isNotBlank() &&
                                     contrasena.isNotBlank() &&
                                     puesto.isNotBlank() &&
-                                    salario.isNotBlank()
+                                    salario.isNotBlank()&&
+                                    fechaIngreso.isNotBlank() &&
+                                    cuatrimestre.isNotBlank() &&
+                                    grupo.isNotBlank() &&
+                                    carrera.isNotBlank()
 
                             if (esFormularioValido) {
+                                val partesFecha = fechaIngreso.split("/")
+                                val fechaFormateada = if (partesFecha.size == 3) {
+                                    "${partesFecha[2]}-${partesFecha[1].padStart(2, '0')}-${partesFecha[0].padStart(2, '0')}"
+                                } else null
+
                                 val nuevo = UsuarioDTO(
                                     nombreCompleto = nombre,
                                     matricula = matricula,
@@ -225,6 +281,7 @@ fun AgregarMiembroDialog(
                                     cuatrimestre = cuatrimestre.toIntOrNull() ?: 1,
                                     puesto = puesto,
                                     salarioQuincenal = salario.toDoubleOrNull() ?: 0.0,
+                                    fechaIngreso = fechaFormateada,
                                     estado = "ACTIVO"
                                 )
                                 onGuardar(nuevo)

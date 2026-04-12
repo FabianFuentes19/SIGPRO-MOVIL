@@ -15,6 +15,7 @@ import com.sigpro.lider.ui.screens.*
 import com.sigpro.lider.ui.theme.SigproTheme
 import androidx.navigation.NavController
 import com.sigpro.lider.session.SessionManager
+import com.sigpro.miembro.ui.screens.NominasMiembroScreen
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -74,14 +75,10 @@ fun AppNavigation() {
                     )
                 }
 
+        //Lider screens
         composable("home") {
             HomeLiderScreen(navController = navController)
         }
-
-        composable("home_miembro") {
-            HomeMiembroScreen(navController = navController)
-        }
-
 
         composable("nominas") {
             HistorialNominasScreen(navController = navController)
@@ -89,6 +86,15 @@ fun AppNavigation() {
 
         composable("perfil") {
             PerfilLideresScreen(navController = navController)
+        }
+
+        //Mimebros screens
+        composable("home_miembro") {
+            HomeMiembroScreen(navController = navController)
+        }
+
+        composable("nominas_miembro") {
+            NominasMiembroScreen(navController = navController)
         }
 
         composable(

@@ -144,7 +144,6 @@ fun MaterialesScreen(
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            // Lista de Materiales Real
             if (viewModel.cargando) {
                 Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     CircularProgressIndicator(color = AzulPrimario)
