@@ -4,6 +4,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sigpro.lider.api.ApiClient
@@ -18,6 +19,9 @@ class PagosViewModel : ViewModel() {
     private val _listaNominas = mutableStateListOf<NominaData>()
     val listaNominas: List<NominaData> get() = _listaNominas
     private var _proyectoId: Long = 1L
+    var mostrarAlerta by mutableStateOf(false)
+    var mensajeAlerta by mutableStateOf("")
+    var colorAlerta by mutableStateOf(Color(0xFFFFB300))
 
     fun cargarNominas() {
         viewModelScope.launch {
@@ -73,13 +77,29 @@ class PagosViewModel : ViewModel() {
                 val response = ApiClient.apiService.registrarPago(request)
 
                 if (response.isSuccessful) {
-                    val index = _listaNominas.indexOfFirst { it.id == nomina.id }
-                    if (index != -1) {
-                        _listaNominas[index] = _listaNominas[index].copy(isPagado = true)
+                    cargarNominas()
+                    val resProyecto = ApiClient.apiService.obtenerProyectoLider()
+                    if (resProyecto.isSuccessful) {
+                        val p = resProyecto.body()
+                        if (p != null) {
+                            val inicial = p.presupuestoAutorizado ?: 100000.0
+                            val actual = p.presupuesto
+                            val porcentaje = (actual / inicial) * 100
+
+                            if (porcentaje <= 20) {
+                                mensajeAlerta = if (porcentaje <= 10) {
+                                    "Te queda menos del 10% de presupuesto"
+                                } else {
+                                    "Te queda menos del 20% de presupuesto"
+                                }
+                                colorAlerta = if (porcentaje <= 10) Color(0xFFE53935) else Color(0xFFFFB300)
+                                mostrarAlerta = true
+                            }
+                        }
                     }
-                } else {
                 }
             } catch (e: Exception) {
+                e.printStackTrace()
             }
         }
     }

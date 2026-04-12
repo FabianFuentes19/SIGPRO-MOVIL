@@ -43,7 +43,6 @@ fun ProyectoCard(
     }
     val colorTextoAlerta = Color(0xFF212121)
 
-    // Color constante para el diseño (Siempre verde como en Web)
     val colorDisenoFijo = Color(0xFF00897B)
 
     Surface(

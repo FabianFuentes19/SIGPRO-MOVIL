@@ -7,6 +7,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sigpro.lider.api.ApiClient
@@ -31,6 +32,10 @@ class MaterialesViewModel : ViewModel() {
 
     var cargando by mutableStateOf(false)
 
+    var mostrarAlerta by mutableStateOf(false)
+    var mensajeAlerta by mutableStateOf("")
+    var colorAlerta by mutableStateOf(Color(0xFFFFB300))
+
     fun cargarMateriales(proyectoId: Long) {
         viewModelScope.launch {
             cargando = true
@@ -51,22 +56,35 @@ class MaterialesViewModel : ViewModel() {
     fun registrarNuevoMaterial(context: Context, nombre: String, cantidad: Int, monto: Double, proyectoId: Long) {
         viewModelScope.launch {
             try {
-                val nuevoMaterial = MaterialRequestDTO(
-                    nombre = nombre,
-                    cantidad = cantidad,
-                    monto = monto,
-                    proyectoId = proyectoId
-                )
+                val nuevoMaterial = MaterialRequestDTO(nombre, monto, cantidad, proyectoId)
                 val response = ApiClient.apiService.registrarMaterial(nuevoMaterial)
 
                 if (response.isSuccessful) {
-                    Toast.makeText(context, "¡Material registrado con éxito!", Toast.LENGTH_SHORT).show()
+                    // se recarga materiales
                     cargarMateriales(proyectoId)
-                } else {
-                    Toast.makeText(context, "Error: Presupuesto insuficiente", Toast.LENGTH_LONG).show()
+                    val resProyecto = ApiClient.apiService.obtenerProyectoLider()
+                    if (resProyecto.isSuccessful) {
+                        val p = resProyecto.body()
+                        if (p != null) {
+                            val inicial = p.presupuestoAutorizado ?: 100000.0
+                            val actual = p.presupuesto
+                            val porcentaje = (actual / inicial) * 100
+
+                            if (porcentaje <= 20) {
+                                mensajeAlerta = if (porcentaje <= 10) {
+                                    "Te queda menos del 10% de presupuesto"
+                                } else {
+                                    "Te queda menos del 20% de presupuesto"
+                                }
+                                colorAlerta = if (porcentaje <= 10) Color(0xFFE53935) else Color(0xFFFFB300)
+                                mostrarAlerta = true
+                            }
+                        }
+                    }
+                    Toast.makeText(context, "¡Material registrado!", Toast.LENGTH_SHORT).show()
                 }
             } catch (e: Exception) {
-                Toast.makeText(context, "Error de conexión con el servidor", Toast.LENGTH_SHORT).show()
+                Log.e("API_ERROR", "Fallo al registrar: ${e.message}")
             }
         }
     }
