@@ -8,10 +8,13 @@ import com.sigpro.lider.models.PagoRequestDTO
 import com.sigpro.lider.models.PagoResponseDTO
 import com.sigpro.lider.models.ProyectoResponseDTO
 import com.sigpro.lider.models.UsuarioDTO
+import com.sigpro.lider.models.UsuarioRequestDTO
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.GET
+import retrofit2.http.PATCH
 import retrofit2.http.POST
+import retrofit2.http.PUT
 import retrofit2.http.Path
 import retrofit2.http.Query
 
@@ -38,15 +41,14 @@ interface ApiService {
     @POST("api/materiales")
     suspend fun registrarMaterial(@Body material: MaterialRequestDTO): Response<MaterialResponseDTO>
 
-    @POST("usuarios")
-    suspend fun registrarMiembro(@Body usuario: UsuarioDTO): Response<UsuarioDTO>
+    @POST("proyectos/{proyectoId}/miembros")
+    suspend fun registrarMiembro(@Path("proyectoId") proyectoId: Long, @Body usuario: UsuarioDTO): Response<Map<String, String>>
 
     @POST("pagos/registrar")
     suspend fun registrarPago(@Body request: PagoRequestDTO): Response<PagoResponseDTO>
 
     @GET("pagos/proyecto")
     suspend fun consultarPagosProyecto(): Response<List<PagoResponseDTO>>
-
     @POST("auth/forgot-password")
     suspend fun solicitarRecuperacion(@Body body: Map<String, String>): Response<Map<String, String>>
 
@@ -59,4 +61,15 @@ interface ApiService {
     @GET("pagos/miembro/{matricula}")
     suspend fun obtenerPagosPorMatricula(@Path("matricula") matricula: String): Response<List<PagoResponseDTO>>
 
+    @PATCH("usuarios/{matricula}/desactivar")
+    suspend fun eliminarMiembro(
+        @Path("matricula") matricula: String): Response<Map<String, Any>>
+    @PUT("usuarios/{matricula}")
+    suspend fun actualizarUsuario(
+        @Path("matricula") matricula: String,
+        @Body dto: UsuarioRequestDTO
+    ): Response<UsuarioDTO>
+
+    @GET("proyectos/mi-proyecto/miembro")
+    suspend fun obtenerProyectoMiembro(): Response<ProyectoResponseDTO>
 }
