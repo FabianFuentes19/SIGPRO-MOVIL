@@ -82,9 +82,12 @@ class PagosViewModel : ViewModel() {
                     if (resProyecto.isSuccessful) {
                         val p = resProyecto.body()
                         if (p != null) {
-                            val inicial = p.presupuestoAutorizado ?: 100000.0
-                            val actual = p.presupuesto
-                            val porcentaje = (actual / inicial) * 100
+                            val presupuestoBase = if ((p.presupuestoAutorizado ?: 0.0) > 0.0)
+                                p.presupuestoAutorizado!!
+                            else
+                                (p.presupuestoInicial ?: 1.0)
+                            val presupuestoActual = p.presupuesto ?: 0.0
+                            val porcentaje = (presupuestoActual / presupuestoBase) * 100
 
                             if (porcentaje <= 20) {
                                 mensajeAlerta = if (porcentaje <= 10) {

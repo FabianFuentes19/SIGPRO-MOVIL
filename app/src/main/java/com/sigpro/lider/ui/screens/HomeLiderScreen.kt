@@ -8,6 +8,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Inventory2
 import androidx.compose.material.icons.filled.Payments
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.PersonAdd
@@ -36,6 +37,8 @@ fun HomeLiderScreen(
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
     val context = androidx.compose.ui.platform.LocalContext.current
+
+    // Estados de diálogos
     var showEditarDialog by remember { mutableStateOf(false) }
     var showAgregarMiembroDialog by remember { mutableStateOf(false) }
     var showEliminarMiembroDialog by remember { mutableStateOf(false) }
@@ -126,130 +129,151 @@ fun HomeLiderScreen(
                     Box(Modifier.fillMaxWidth().height(200.dp), contentAlignment = Alignment.Center) {
                         CircularProgressIndicator(color = AzulPrimario)
                     }
-                } else if (proyecto != null) {
-                    viewModel.proyecto?.let { proyecto ->
-                        ProyectoCard(
-                            proyecto = proyecto,
-                            onClick = {
-                                navController.navigate("materiales/${proyecto.id}")
-                            }
-                        )
-                    }
+                } else if (proyecto != null && proyecto.id != null) {
+                    ProyectoCard(
+                        proyecto = proyecto,
+                        onClick = {
+                            navController.navigate("materiales/${proyecto.id}")
+                        }
+                    )
                 } else {
+                    // Vista líder sin proyecto
                     Card(
-                        modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 8.dp),
                         shape = RoundedCornerShape(12.dp),
-                        elevation = 2.dp
+                        elevation = 2.dp,
+                        backgroundColor = Color.White
                     ) {
-                        Column(modifier = Modifier.padding(24.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text("Aún no se te asigna ningún proyecto", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = azulMarino, textAlign = TextAlign.Center)
-                            Spacer(Modifier.height(8.dp))
-                            Text("Contacta al administrador para el registro.", fontSize = 14.sp, color = Color.Gray, textAlign = TextAlign.Center)
+                        Row(
+                            modifier = Modifier.padding(24.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Inventory2,
+                                contentDescription = null,
+                                modifier = Modifier.size(48.dp),
+                                tint = Color(0xFF94A3B8)
+                            )
+
+                            Spacer(modifier = Modifier.width(20.dp))
+
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = "Sin proyecto asignado",
+                                    fontSize = 20.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color(0xFF1E293B) // Azul muy oscuro/Slate
+                                )
+                                Spacer(Modifier.height(8.dp))
+                                Text(
+                                    text = "Actualmente no cuentas con un proyecto vinculado. Una vez que se te asigne uno, podrás gestionar a tus miembros y registrar materiales/nóminas.",
+                                    fontSize = 14.sp,
+                                    color = Color(0xFF64748B), // Gris Slate
+                                    lineHeight = 20.sp
+                                )
+                            }
                         }
                     }
                 }
 
                 Spacer(modifier = Modifier.height(32.dp))
 
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = "Miembros",
-                        fontSize = 28.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = azulMarino
-                    )
-
-                    Button(
-                        onClick = { showAgregarMiembroDialog = true },
-                        colors = ButtonDefaults.buttonColors(backgroundColor = doradoBoton),
-                        shape = RoundedCornerShape(24.dp),
-                        elevation = ButtonDefaults.elevation(defaultElevation = 2.dp),
-                        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
+                if (proyecto != null) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Icon(
-                            Icons.Default.PersonAdd,
-                            contentDescription = null,
-                            tint = Color.White,
-                            modifier = Modifier.size(16.dp)
-                        )
-                        Spacer(Modifier.width(6.dp))
                         Text(
-                            text = "Agregar miembro",
-                            color = Color.White,
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.Medium
+                            text = "Miembros",
+                            fontSize = 28.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = azulMarino
                         )
+
+                        Button(
+                            onClick = { showAgregarMiembroDialog = true },
+                            // deshabilitado si no hay proyecto
+                            enabled = (proyecto != null && proyecto.id != null),
+                            colors = ButtonDefaults.buttonColors(
+                                backgroundColor = doradoBoton,
+                                disabledBackgroundColor = Color(0xFFE2E8F0)
+                            ),
+                            shape = RoundedCornerShape(24.dp),
+                            elevation = ButtonDefaults.elevation(
+                                defaultElevation = 2.dp,
+                                disabledElevation = 0.dp
+                            ),
+                            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
+                        ) {
+                            val contenidoColor = if (proyecto != null) Color.White else Color(0xFF94A3B8)
+
+                            Icon(
+                                Icons.Default.PersonAdd,
+                                contentDescription = null,
+                                tint = contenidoColor,
+                                modifier = Modifier.size(16.dp)
+                            )
+                            Spacer(Modifier.width(6.dp))
+                            Text(
+                                text = "Agregar miembro",
+                                color = contenidoColor,
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.Medium
+                            )
+                        }
                     }
+                    Spacer(modifier = Modifier.height(16.dp))
                 }
-                Spacer(modifier = Modifier.height(16.dp))
             }
 
-            if (viewModel.cargando) {
-                item {
-                    Box(
-                        modifier = Modifier.fillMaxWidth().padding(vertical = 40.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        CircularProgressIndicator(color = AzulPrimario)
-                    }
-                }
-            } else if (viewModel.listaMiembros.isEmpty()) {
-                item {
-                    Column(
-                        modifier = Modifier.fillMaxWidth().padding(vertical = 40.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Text(
-                            text = "Aún no hay participantes en el proyecto",
-                            fontSize = 16.sp,
-                            color = Color.Gray,
-                            fontWeight = FontWeight.Medium
-                        )
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Text(
-                            text = "Usa el botón de arriba para añadir uno.",
-                            fontSize = 14.sp,
-                            color = Color.LightGray
-                        )
-                    }
-                }
-            } else {
-                items(viewModel.listaMiembros) { miembro ->
-                    MiembroItem(
-                        nombre = miembro.nombreCompleto ?: "Sin nombre",
-                        rol = miembro.puesto ?: "Miembro",
-                        onEditar = {
-                            miembroSeleccionado = miembro
-                            showEditarDialog = true
-                        },
-                        onBorrar = {
-                            miembroSeleccionado = miembro
-                            showEliminarMiembroDialog = true
-                        },
-                        onDetalles = {
-                            if (miembro.matricula.isNotBlank()) {
-                                viewModel.cargarDetalleMiembro(miembro.matricula) {
-                                    showConsultarMiembroDialog = true
-                                }
-                            }
-                        },
-                        onHistorial = {
-                            miembroSeleccionado = miembro
-                            showHistorialMiembroDialog = true
+            //lista de miembros si hay proyecto asignado
+            if (proyecto != null) {
+                if (viewModel.listaMiembros.isEmpty() && !viewModel.cargando) {
+                    item {
+                        Column(
+                            modifier = Modifier.fillMaxWidth().padding(vertical = 40.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Text("Aún no hay participantes en el proyecto", fontSize = 16.sp, color = Color.Gray)
                         }
-                    )
-                    Spacer(modifier = Modifier.height(12.dp))
+                    }
+                } else {
+                    items(viewModel.listaMiembros) { miembro ->
+                        MiembroItem(
+                            nombre = miembro.nombreCompleto ?: "Sin nombre",
+                            rol = miembro.puesto ?: "Miembro",
+                            onEditar = {
+                                miembroSeleccionado = miembro
+                                showEditarDialog = true
+                            },
+                            onBorrar = {
+                                miembroSeleccionado = miembro
+                                showEliminarMiembroDialog = true
+                            },
+                            onDetalles = {
+                                if (miembro.matricula.isNotBlank()) {
+                                    viewModel.cargarDetalleMiembro(miembro.matricula) {
+                                        showConsultarMiembroDialog = true
+                                    }
+                                }
+                            },
+                            onHistorial = {
+                                miembroSeleccionado = miembro
+                                showHistorialMiembroDialog = true
+                            }
+                        )
+                        Spacer(modifier = Modifier.height(12.dp))
+                    }
                 }
             }
             item { Spacer(modifier = Modifier.height(16.dp)) }
         }
     }
 
-    if (showAgregarMiembroDialog) {
+    if (showAgregarMiembroDialog && proyecto != null) {
         AgregarMiembroDialog(
             onDismiss = { showAgregarMiembroDialog = false },
             onGuardar = { miembro ->
@@ -259,19 +283,19 @@ fun HomeLiderScreen(
         )
     }
 
-
     if (showEditarDialog && miembroSeleccionado != null) {
+        val m = miembroSeleccionado!!
         EditarMiembroDialog(
-            nombrePre = miembroSeleccionado!!.nombreCompleto,
-            matriculaPre = miembroSeleccionado!!.matricula,
-            cuatriPre = miembroSeleccionado!!.cuatrimestre.toString(),
-            grupoPre = miembroSeleccionado!!.grupo,
-            carreraPre = miembroSeleccionado!!.carrera,
+            nombrePre = m.nombreCompleto ?: "",
+            matriculaPre = m.matricula ?: "",
+            cuatriPre = m.cuatrimestre?.toString() ?: "0",
+            grupoPre = m.grupo ?: "",
+            carreraPre = m.carrera ?: "",
             contrasenaPre = "",
-            rolPre = miembroSeleccionado!!.rolNombre ?: "Miembro",
-            puestoPre = miembroSeleccionado!!.puesto,
-            salarioPre = miembroSeleccionado!!.salarioQuincenal.toString(),
-            fechaPre = miembroSeleccionado!!.fechaIngreso.toString(),
+            rolPre = m.rolNombre ?: "Miembro",
+            puestoPre = m.puesto ?: "",
+            salarioPre = m.salarioQuincenal?.toString() ?: "0.0",
+            fechaPre = m.fechaIngreso?.toString() ?: "",
             onDismiss = { showEditarDialog = false },
             onGuardar = { usuarioEditado ->
                 viewModel.editarMiembro(context, miembroSeleccionado!!.matricula, usuarioEditado)
@@ -306,11 +330,9 @@ fun HomeLiderScreen(
             carrera = m.carrera,
             puesto = m.puesto,
             salario = m.salarioQuincenal.toString(),
-            //fechaIngreso = m.fechaIngreso ?: "Sin fecha",
             onDismiss = { showConsultarMiembroDialog = false }
         )
     }
-
 
     if (showHistorialMiembroDialog && miembroSeleccionado != null) {
         LaunchedEffect(miembroSeleccionado) {
@@ -320,8 +342,14 @@ fun HomeLiderScreen(
         HistorialMiembroDialog(
             nombre = miembroSeleccionado!!.nombreCompleto,
             puesto = miembroSeleccionado!!.puesto,
-            totalAcumulado = String.format("$%.2f", viewModel.listaPagosMiembro.sumOf { it.monto.toDouble() }),
-            listaPagos = viewModel.listaPagosMiembro.map { Pago(it.fecha.toString(), "$${it.monto}") },
+            totalAcumulado = String.format("$%,.2f", viewModel.listaPagosMiembro.sumOf { it.monto?.toDouble() ?: 0.0 }),
+
+            listaPagos = viewModel.listaPagosMiembro.map {
+                Pago(
+                    fecha = it.fecha?.toString() ?: "Sin fecha",
+                    monto = "$${String.format("%.2f", it.monto ?: 0.0)}"
+                )
+            },
             cargando = viewModel.cargando,
             onDismiss = {
                 showHistorialMiembroDialog = false

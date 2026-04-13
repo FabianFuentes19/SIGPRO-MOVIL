@@ -30,7 +30,6 @@ class HomeLiderViewModel : ViewModel() {
     var cargando by mutableStateOf(false)
     var errorMensaje by mutableStateOf<String?>(null)
 
-
     val gastoTotal: Double
         get() = (listaMateriales.sumOf { it.costoTotal ?: 0.0 }) +
                 (listaPagos.sumOf { it.monto ?: 0.0 })
@@ -38,7 +37,7 @@ class HomeLiderViewModel : ViewModel() {
     val progresoRestante: Float
         get() {
             val total = proyecto?.presupuesto ?: 0.0
-            if (total <= 0.0) return 0f // Protección contra división por cero
+            if (total <= 0.0) return 0f
             return ((total - gastoTotal) / total).toFloat().coerceIn(0f, 1f)
         }
 
@@ -47,7 +46,6 @@ class HomeLiderViewModel : ViewModel() {
             val total = proyecto?.presupuesto ?: 0.0
             if (total <= 0.0) return null
             val disponible = total - gastoTotal
-
             return when {
                 disponible <= 0 -> "Presupuesto agotado"
                 progresoRestante <= 0.10f -> "¡CRÍTICO! Queda menos del 10% del presupuesto"
@@ -62,12 +60,11 @@ class HomeLiderViewModel : ViewModel() {
             errorMensaje = null
             try {
                 val matricula = SessionManager.getMatricula() ?: ""
-
                 val resProyecto = ApiClient.apiService.obtenerProyectoLider()
-                if (resProyecto.isSuccessful && resProyecto.body() != null) {
-                    val proy = resProyecto.body()!!
-                    proyecto = proy
+                val proy = resProyecto.body()
 
+                if (resProyecto.isSuccessful && proy != null) {
+                    proyecto = proy
                     proy.id?.let { id ->
                         val resMat = ApiClient.apiService.obtenerMateriales(id)
                         if (resMat.isSuccessful) {
@@ -80,18 +77,20 @@ class HomeLiderViewModel : ViewModel() {
                             listaPagos.clear()
                             resPagos.body()?.let { listaPagos.addAll(it) }
                         }
+
+                        val resMiembros = ApiClient.apiService.obtenerMiembrosPorMatricula(matricula)
+                        if (resMiembros.isSuccessful) {
+                            listaMiembros.clear()
+                            resMiembros.body()?.let { listaMiembros.addAll(it) }
+                        }
                     }
                 } else {
                     proyecto = null
                     listaMateriales.clear()
                     listaPagos.clear()
-                }
-                val resMiembros = ApiClient.apiService.obtenerMiembrosPorMatricula(matricula)
-                if (resMiembros.isSuccessful) {
                     listaMiembros.clear()
-                    resMiembros.body()?.let { listaMiembros.addAll(it) }
+                    Log.d("APP_DEBUG", "El líder no tiene proyecto asignado")
                 }
-
             } catch (e: Exception) {
                 Log.e("API_ERROR", "Error en carga inicial: ${e.message}")
                 errorMensaje = "Error al conectar con el servidor"
@@ -137,7 +136,6 @@ class HomeLiderViewModel : ViewModel() {
                     android.widget.Toast.makeText(context, "No tienes un proyecto asignado para agregar miembros", android.widget.Toast.LENGTH_SHORT).show()
                     return@launch
                 }
-
                 val response = ApiClient.apiService.registrarMiembro(pId, nuevoMiembro)
                 if (response.isSuccessful) {
                     android.widget.Toast.makeText(context, "¡Miembro registrado correctamente!", android.widget.Toast.LENGTH_SHORT).show()

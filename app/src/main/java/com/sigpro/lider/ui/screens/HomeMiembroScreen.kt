@@ -20,7 +20,6 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
-import com.sigpro.lider.session.SessionManager
 import com.sigpro.lider.ui.components.CambiarContrasenaDialog
 import com.sigpro.lider.ui.components.LogoutDialog
 import com.sigpro.lider.ui.components.SeccionHeader
@@ -278,13 +277,13 @@ fun HomeMiembroScreen(
                                     Box(Modifier.weight(1f)) {
                                         InfoLabel(
                                             label = "FECHA INICIO",
-                                            value = proyecto.fechaInicio ?: "-"
+                                            value = proyecto.fechaInicio?.toString() ?: "-"
                                         )
                                     }
                                     Box(Modifier.weight(1f)) {
                                         InfoLabel(
                                             label = "FECHA FIN",
-                                            value = proyecto.fechaFin ?: "-"
+                                            value = proyecto.fechaFin?.toString() ?: "-"
                                         )
                                     }
                                 }
@@ -299,16 +298,16 @@ fun HomeMiembroScreen(
                                     value = proyecto.descripcion ?: "Sin descripción"
                                 )
                             }
-                                else if (!cargando) {
-                                    Text(
-                                        "No tienes un proyecto asignado.",
-                                        color = Color.Gray,
-                                        fontSize = 14.sp
-                                    )
-                                }
+                            else if (!cargando) {
+                                Text(
+                                    "No tienes un proyecto asignado.",
+                                    color = Color.Gray,
+                                    fontSize = 14.sp
+                                )
                             }
                         }
                     }
+                }
 
                 Spacer(modifier = Modifier.height(20.dp))
 

@@ -21,12 +21,16 @@ fun ProyectoCard(
     proyecto: ProyectoResponseDTO,
     onClick: () -> Unit
 ) {
-    // calculo
-    val presupuestoTotal = if (proyecto.presupuestoAutorizado > 0)
-        proyecto.presupuestoAutorizado else proyecto.presupuestoInicial
+    // 1. Manejo de nulos en cálculos (Usamos 0.0 si es null)
+    val presupuestoActual = proyecto.presupuesto ?: 0.0
+    val presupuestoAutorizado = proyecto.presupuestoAutorizado ?: 0.0
+    val presupuestoInicial = proyecto.presupuestoInicial ?: 0.0
+
+    val presupuestoTotal = if (presupuestoAutorizado > 0)
+        presupuestoAutorizado else presupuestoInicial
 
     val porcentajeRestante = if (presupuestoTotal > 0)
-        (proyecto.presupuesto / presupuestoTotal).toFloat() else 0f
+        (presupuestoActual / presupuestoTotal).toFloat() else 0f
 
     // Colores de barras
     val colorBarraAlerta = when {
@@ -36,13 +40,12 @@ fun ProyectoCard(
     }
 
     val (colorEstado, mensajeAlerta) = when {
-        proyecto.presupuesto <= 0 -> Color(0xFFD32F2F) to "Presupuesto agotado"
+        presupuestoActual <= 0 -> Color(0xFFD32F2F) to "Presupuesto agotado"
         porcentajeRestante <= 0.10f -> Color(0xFFD32F2F) to "Te queda menos del 10% de presupuesto"
         porcentajeRestante <= 0.20f -> Color(0xFFF57C00) to "Te queda menos del 20% de presupuesto"
         else -> Color(0xFF00897B) to null
     }
     val colorTextoAlerta = Color(0xFF212121)
-
     val colorDisenoFijo = Color(0xFF00897B)
 
     Surface(
@@ -53,7 +56,6 @@ fun ProyectoCard(
         elevation = 4.dp
     ) {
         Column {
-            // Banner superior: SIEMPRE VERDE (como pediste)
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -62,15 +64,16 @@ fun ProyectoCard(
             )
 
             Column(modifier = Modifier.padding(20.dp)) {
+                // 2. Manejo de nulos en Textos
                 Text(
-                    text = proyecto.nombre,
+                    text = proyecto.nombre ?: "Proyecto sin nombre",
                     fontSize = 22.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color(0xFF00334E)
                 )
 
                 Text(
-                    text = proyecto.objetivoGeneral,
+                    text = proyecto.objetivoGeneral ?: "Sin descripción disponible",
                     fontSize = 14.sp,
                     color = Color.Gray,
                     lineHeight = 18.sp
@@ -101,7 +104,10 @@ fun ProyectoCard(
                     Spacer(modifier = Modifier.width(12.dp))
                     Column {
                         Text("FECHA", fontSize = 10.sp, color = Color.Gray, fontWeight = FontWeight.Bold)
-                        Text("${proyecto.fechaInicio} — ${proyecto.fechaFin}", fontSize = 14.sp, fontWeight = FontWeight.Medium)
+                        // 3. Manejo de nulos en Fechas (Any?)
+                        val fInicio = proyecto.fechaInicio?.toString() ?: "N/A"
+                        val fFin = proyecto.fechaFin?.toString() ?: "N/A"
+                        Text("$fInicio — $fFin", fontSize = 14.sp, fontWeight = FontWeight.Medium)
                     }
                 }
 
@@ -109,7 +115,7 @@ fun ProyectoCard(
 
                 Text("Restante", fontSize = 12.sp, color = Color.Gray, fontWeight = FontWeight.Bold)
                 Text(
-                    text = "$${String.format("%,.2f", proyecto.presupuesto)}",
+                    text = "$${String.format("%,.2f", presupuestoActual)}",
                     fontSize = 32.sp,
                     fontWeight = FontWeight.ExtraBold,
                     color = Color(0xFF003D61)
@@ -117,7 +123,6 @@ fun ProyectoCard(
 
                 Spacer(modifier = Modifier.height(12.dp))
 
-                // Progreso
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween
@@ -135,9 +140,7 @@ fun ProyectoCard(
 
                 LinearProgressIndicator(
                     progress = porcentajeRestante.coerceIn(0f, 1f),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(10.dp),
+                    modifier = Modifier.fillMaxWidth().height(10.dp),
                     color = colorBarraAlerta,
                     backgroundColor = Color(0xFFE0E0E0)
                 )
