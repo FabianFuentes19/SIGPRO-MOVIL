@@ -21,6 +21,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.sigpro.lider.models.MaterialResponseDTO
 import com.sigpro.lider.ui.components.AgregarMaterialDialog
+import com.sigpro.lider.ui.components.AlertaPresupuestoModal
 import com.sigpro.lider.ui.theme.*
 import com.sigpro.lider.viewmodel.MaterialesViewModel
 
@@ -68,6 +69,14 @@ fun MaterialesScreen(
 
                     showAgregarDialog = false
                 }
+            )
+        }
+
+        if (viewModel.mostrarAlerta) {
+            AlertaPresupuestoModal(
+                mensaje = viewModel.mensajeAlerta,
+                colorAlerta = viewModel.colorAlerta,
+                onDismiss = { viewModel.mostrarAlerta = false }
             )
         }
 

@@ -127,19 +127,14 @@ fun HomeLiderScreen(
                         CircularProgressIndicator(color = AzulPrimario)
                     }
                 } else if (proyecto != null) {
-                    ProyectoCard(
-                        nombre = proyecto.nombre,
-                        objetivo = proyecto.objetivoGeneral,
-                        fechaInicio = proyecto.fechaInicio,
-                        fechaFin = proyecto.fechaFin,
-                        presupuesto = proyecto.presupuesto.toString(),
-                        progreso = 0.65f,
-                        onClick = { proyecto?.id?.let { id ->
-                            navController.navigate("materiales/$id")
-                        } ?: run {
-                            Log.e("NAV_ERROR", "El proyecto aún no carga, no puedo ir a materiales")
-                        } }
-                    )
+                    viewModel.proyecto?.let { proyecto ->
+                        ProyectoCard(
+                            proyecto = proyecto,
+                            onClick = {
+                                navController.navigate("materiales/${proyecto.id}")
+                            }
+                        )
+                    }
                 } else {
                     Card(
                         modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
