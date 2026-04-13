@@ -66,10 +66,11 @@ interface ApiService {
         @Path("matricula") matricula: String): Response<Map<String, Any>>
     @PUT("usuarios/{matricula}")
     suspend fun actualizarUsuario(
-        @Path("matricula") matricula: String,
-        @Body dto: UsuarioRequestDTO
-    ): Response<UsuarioDTO>
-
+        @Path("matricula") matricula: String, @Body dto: UsuarioRequestDTO): Response<UsuarioDTO>
     @GET("proyectos/mi-proyecto/miembro")
     suspend fun obtenerProyectoMiembro(): Response<ProyectoResponseDTO>
+
+    @PUT("usuarios/{matricula}/cambiar-contrasena")
+    suspend fun cambiarPassword(
+        @Path("matricula") matricula: String, @Body body: Map<String, String>): Response<Map<String, String>>
 }

@@ -47,10 +47,6 @@ fun HomeLiderScreen(
         viewModel.cargarProyecto()
     }
 
-    LaunchedEffect(Unit) {
-        viewModel.cargarProyecto()
-    }
-
     val proyecto = viewModel.proyecto
     val azulMarino = Color(0xFF00334E)
     val doradoBoton = Color(0xFFA68238)
@@ -229,8 +225,8 @@ fun HomeLiderScreen(
             } else {
                 items(viewModel.listaMiembros) { miembro ->
                     MiembroItem(
-                        nombre = miembro.nombreCompleto,
-                        rol = miembro.puesto,
+                        nombre = miembro.nombreCompleto ?: "Sin nombre",
+                        rol = miembro.puesto ?: "Miembro",
                         onEditar = {
                             miembroSeleccionado = miembro
                             showEditarDialog = true
@@ -240,8 +236,10 @@ fun HomeLiderScreen(
                             showEliminarMiembroDialog = true
                         },
                         onDetalles = {
-                            viewModel.cargarDetalleMiembro(miembro.matricula) {
-                                showConsultarMiembroDialog = true
+                            if (miembro.matricula.isNotBlank()) {
+                                viewModel.cargarDetalleMiembro(miembro.matricula) {
+                                    showConsultarMiembroDialog = true
+                                }
                             }
                         },
                         onHistorial = {

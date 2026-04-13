@@ -1,6 +1,5 @@
 package com.sigpro.miembro.ui.screens
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -11,86 +10,56 @@ import androidx.compose.material.icons.filled.Payments
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.runtime.*
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
+import com.sigpro.lider.models.PagoResponseDTO
 import com.sigpro.lider.ui.theme.*
-import com.sigpro.lider.viewmodel.HomeLiderViewModel
+import com.sigpro.lider.viewmodel.NominasMiembroViewModel
+import java.util.Locale
 
 @Composable
 fun NominasMiembroScreen(
     navController: NavController,
-    //viewModel: NominasMimebrosViewModel = viewModel()
+    viewModel: NominasMiembroViewModel = viewModel()
 ) {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
     var searchQuery by remember { mutableStateOf("") }
     val azulMarino = Color(0xFF00334E)
-    val verdeTurquesa = Color(0xFF009688)
 
-    val listaNominas = listOf(
-        NominaItem("#130", "PAGO NÓMINA", "Viernes, 30 ene 2026", "Pago quincenal", "$4,800.00"),
-        NominaItem("#129", "PAGO NÓMINA", "Viernes, 30 ene 2026", "Pago quincenal", "$4,800.00"),
-        NominaItem("#128", "PAGO NÓMINA", "Viernes, 30 ene 2026", "Pago quincenal", "$4,800.00"),
-        NominaItem("#127", "PAGO NÓMINA", "Viernes, 30 ene 2026", "Pago quincenal", "$4,800.00")
-    )
+    LaunchedEffect(Unit) {
+        viewModel.cargarNominas()
+    }
 
     Scaffold(
         topBar = {
             TopAppBar(
                 backgroundColor = AzulPrimario,
-                title = {
-                    Text(
-                        "Nóminas",
-                        color = Color.White,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 20.sp
-                    )
-                },
-                elevation = 0.dp
+                title = { Text("Mis Nóminas", color = Color.White, fontWeight = FontWeight.Bold) },
+                elevation = 4.dp
             )
         },
         bottomBar = {
-            BottomNavigation(
-                backgroundColor = azulMarino,
-                contentColor = Color.White,
-                elevation = 8.dp
-            ) {
+            BottomNavigation(backgroundColor = azulMarino, contentColor = Color.White) {
                 BottomNavigationItem(
-                    icon = { Icon(Icons.Default.Payments, contentDescription = null, modifier = Modifier.size(24.dp)) },
-                    label = { Text(text = "Nóminas", fontSize = 12.sp) },
+                    icon = { Icon(Icons.Default.Payments, contentDescription = null) },
+                    label = { Text("Nóminas") },
                     selected = currentRoute == "nominas_miembro",
-                    onClick = {
-                        if (currentRoute != "nominas_miembro") {
-                            navController.navigate("nominas_miembro") {
-                                launchSingleTop = true
-                                restoreState = true
-                            }
-                        }
-                    },
-                    alwaysShowLabel = true
+                    onClick = { /* Estamos aquí */ }
                 )
-
                 BottomNavigationItem(
-                    icon = { Icon(Icons.Default.Person, contentDescription = null, modifier = Modifier.size(24.dp)) },
-                    label = { Text(text = "Perfil", fontSize = 12.sp) },
+                    icon = { Icon(Icons.Default.Person, contentDescription = null) },
+                    label = { Text("Perfil") },
                     selected = currentRoute == "home_miembro",
-                    onClick = {
-                        if (currentRoute != "home_miembro") {
-                            navController.navigate("home_miembro") {
-                                launchSingleTop = true
-                                restoreState = true
-                            }
-                        }
-                    },
-                    alwaysShowLabel = true
+                    onClick = { navController.navigate("home_miembro") }
                 )
             }
         }
@@ -101,29 +70,72 @@ fun NominasMiembroScreen(
                 .padding(padding)
                 .padding(horizontal = 16.dp)
         ) {
+            // Buscador
             OutlinedTextField(
                 value = searchQuery,
                 onValueChange = { searchQuery = it },
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(vertical = 16.dp),
-                placeholder = { Text("Buscar", color = Color.Gray) },
+                placeholder = { Text("Buscar por fecha o folio", color = Color.Gray) },
                 leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = Color.Gray) },
-                shape = RoundedCornerShape(8.dp),
+                shape = RoundedCornerShape(12.dp),
                 colors = TextFieldDefaults.outlinedTextFieldColors(
                     backgroundColor = Color.White,
-                    focusedBorderColor = Color.LightGray,
-                    unfocusedBorderColor = Color.LightGray
-                ),
-                singleLine = true
+                    focusedBorderColor = AzulPrimario
+                )
             )
 
-            LazyColumn(
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-                contentPadding = PaddingValues(bottom = 16.dp)
-            ) {
-                items(listaNominas) { nomina ->
-                    CardNomina(nomina)
+            if (viewModel.cargando) {
+                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator(color = AzulPrimario)
+                }
+            } else if (viewModel.listaPagos.isEmpty()) {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Icon(
+                            imageVector = Icons.Default.Payments,
+                            contentDescription = null,
+                            modifier = Modifier.size(100.dp),
+                            tint = Color.LightGray
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Text(
+                            text = "Tu historial de pagos aparecerá aquí",
+                            style = MaterialTheme.typography.h6,
+                            color = Color.DarkGray,
+                            fontWeight = FontWeight.Bold,
+                            textAlign = TextAlign.Center
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = "Por el momento no tienes nóminas registradas.\nEn cuanto se procese tu primer pago, podrás consultarlo aquí.",
+                            style = MaterialTheme.typography.body2,
+                            color = Color.Gray,
+                            textAlign = TextAlign.Center
+                        )
+                        Button(
+                            onClick = { viewModel.cargarNominas() },
+                            modifier = Modifier.padding(top = 24.dp),
+                            colors = ButtonDefaults.buttonColors(backgroundColor = AzulPrimario),
+                            shape = RoundedCornerShape(20.dp)
+                        ) {
+                            Text("Actualizar", color = Color.White)
+                        }
+                    }
+                }
+            } else {
+                LazyColumn(
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                    contentPadding = PaddingValues(bottom = 20.dp)
+                ) {
+                    val filteredList = viewModel.listaPagos.filter {
+                        it.id.toString().contains(searchQuery) || it.fecha.contains(searchQuery)
+                    }
+
+                    items(filteredList) { pago ->
+                        CardNominaReal(pago)
+                    }
                 }
             }
         }
@@ -131,35 +143,61 @@ fun NominasMiembroScreen(
 }
 
 @Composable
-fun CardNomina(nomina: NominaItem) {
+fun CardNominaReal(pago: PagoResponseDTO) {
     Card(
-        shape = RoundedCornerShape(4.dp),
-        elevation = 2.dp,
+        shape = RoundedCornerShape(12.dp),
+        elevation = 4.dp,
         modifier = Modifier.fillMaxWidth()
     ) {
-        Column(
-            modifier = Modifier.padding(16.dp)
-        ) {
+        Column(modifier = Modifier.padding(20.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "FOLIO #${pago.id}",
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.Gray
+                )
+                Surface(
+                    color = Color(0xFFE0F2F1),
+                    shape = RoundedCornerShape(16.dp)
+                ) {
+                    Text(
+                        text = "DEPÓSITO",
+                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
+                        fontSize = 10.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF00796B)
+                    )
+                }
+            }
+
             Text(
-                text = nomina.id,
-                fontSize = 12.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color.Black
-            )
-            Text(
-                text = nomina.titulo,
-                fontSize = 16.sp,
+                text = "PAGO NÓMINA",
+                fontSize = 18.sp,
                 fontWeight = FontWeight.ExtraBold,
                 color = AzulPrimario,
                 modifier = Modifier.padding(vertical = 4.dp)
             )
-            Text(
-                text = nomina.fecha,
-                fontSize = 13.sp,
-                color = Color.Gray
-            )
 
-            Spacer(modifier = Modifier.height(12.dp))
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    text = "Fecha de emisión: ",
+                    fontSize = 13.sp,
+                    color = Color.Gray
+                )
+                Text(
+                    text = pago.fecha,
+                    fontSize = 13.sp,
+                    color = Color.DarkGray,
+                    fontWeight = FontWeight.Medium
+                )
+            }
+
+            Divider(modifier = Modifier.padding(vertical = 16.dp), thickness = 0.8.dp, color = Color(0xFFEEEEEE))
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -167,26 +205,18 @@ fun CardNomina(nomina: NominaItem) {
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = nomina.descripcion,
+                    text = "Monto Neto",
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Medium,
                     color = Color.Black
                 )
                 Text(
-                    text = nomina.monto,
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.Gray
+                    text = "$${String.format(Locale.US, "%,.2f", pago.monto)}",
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.ExtraBold,
+                    color = Color(0xFF2E7D32)
                 )
             }
         }
     }
 }
-
-data class NominaItem(
-    val id: String,
-    val titulo: String,
-    val fecha: String,
-    val descripcion: String,
-    val monto: String
-)

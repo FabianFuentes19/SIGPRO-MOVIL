@@ -13,6 +13,7 @@ import com.sigpro.lider.models.PagoResponseDTO
 import com.sigpro.lider.models.ProyectoResponseDTO
 import com.sigpro.lider.models.UsuarioDTO
 import com.sigpro.lider.models.UsuarioRequestDTO
+import com.sigpro.lider.session.SessionManager
 import kotlinx.coroutines.launch
 
 class HomeLiderViewModel : ViewModel() {
@@ -22,7 +23,6 @@ class HomeLiderViewModel : ViewModel() {
     var listaMateriales = mutableStateListOf<MaterialResponseDTO>()
 
     var miembroDetallado by mutableStateOf<UsuarioDTO?>(null)
-
         private set
     var listaPagosMiembro = mutableStateListOf<PagoResponseDTO>()
         private set
@@ -30,29 +30,76 @@ class HomeLiderViewModel : ViewModel() {
     var cargando by mutableStateOf(false)
     var errorMensaje by mutableStateOf<String?>(null)
 
+
     val gastoTotal: Double
-        get() = listaMateriales.sumOf { it.costoTotal } + listaPagos.sumOf { it.monto }
+        get() = (listaMateriales.sumOf { it.costoTotal ?: 0.0 }) +
+                (listaPagos.sumOf { it.monto ?: 0.0 })
 
     val progresoRestante: Float
         get() {
             val total = proyecto?.presupuesto ?: 0.0
-            return if (total > 0) {
-                ((total - gastoTotal) / total).toFloat().coerceIn(0f, 1f)
-            } else 0f
+            if (total <= 0.0) return 0f // Protección contra división por cero
+            return ((total - gastoTotal) / total).toFloat().coerceIn(0f, 1f)
         }
 
     val alertaPresupuesto: String?
         get() {
             val total = proyecto?.presupuesto ?: 0.0
+            if (total <= 0.0) return null
             val disponible = total - gastoTotal
 
             return when {
-                disponible <= 0 && total > 0 -> "Presupuesto agotado"
+                disponible <= 0 -> "Presupuesto agotado"
                 progresoRestante <= 0.10f -> "¡CRÍTICO! Queda menos del 10% del presupuesto"
                 progresoRestante <= 0.20f -> "Atención: Queda el 20% del presupuesto disponible"
                 else -> null
             }
         }
+
+    fun cargarProyecto() {
+        viewModelScope.launch {
+            cargando = true
+            errorMensaje = null
+            try {
+                val matricula = SessionManager.getMatricula() ?: ""
+
+                val resProyecto = ApiClient.apiService.obtenerProyectoLider()
+                if (resProyecto.isSuccessful && resProyecto.body() != null) {
+                    val proy = resProyecto.body()!!
+                    proyecto = proy
+
+                    proy.id?.let { id ->
+                        val resMat = ApiClient.apiService.obtenerMateriales(id)
+                        if (resMat.isSuccessful) {
+                            listaMateriales.clear()
+                            resMat.body()?.let { listaMateriales.addAll(it) }
+                        }
+
+                        val resPagos = ApiClient.apiService.consultarPagosProyecto()
+                        if (resPagos.isSuccessful) {
+                            listaPagos.clear()
+                            resPagos.body()?.let { listaPagos.addAll(it) }
+                        }
+                    }
+                } else {
+                    proyecto = null
+                    listaMateriales.clear()
+                    listaPagos.clear()
+                }
+                val resMiembros = ApiClient.apiService.obtenerMiembrosPorMatricula(matricula)
+                if (resMiembros.isSuccessful) {
+                    listaMiembros.clear()
+                    resMiembros.body()?.let { listaMiembros.addAll(it) }
+                }
+
+            } catch (e: Exception) {
+                Log.e("API_ERROR", "Error en carga inicial: ${e.message}")
+                errorMensaje = "Error al conectar con el servidor"
+            } finally {
+                cargando = false
+            }
+        }
+    }
 
     fun cargarDetalleMiembro(matricula: String, onListo: () -> Unit) {
         viewModelScope.launch {
@@ -67,49 +114,9 @@ class HomeLiderViewModel : ViewModel() {
             }
         }
     }
-    fun cargarProyecto() {
-        viewModelScope.launch {
-            cargando = true
-            try {
-                val matricula = com.sigpro.lider.session.SessionManager.getMatricula() ?: ""
-
-                val resProyecto = ApiClient.apiService.obtenerProyectoLider()
-                if (resProyecto.isSuccessful) {
-                    proyecto = resProyecto.body()
-
-                    proyecto?.id?.let { id ->
-                        val resMat = ApiClient.apiService.obtenerMateriales(id)
-                        if (resMat.isSuccessful) {
-                            listaMateriales.clear()
-                            resMat.body()?.let { listaMateriales.addAll(it) }
-                        }
-
-                        val resPagos = ApiClient.apiService.consultarPagosProyecto()
-                        if (resPagos.isSuccessful) {
-                            listaPagos.clear()
-                            resPagos.body()?.let { listaPagos.addAll(it) }
-                        }
-                    }
-                }
-
-                val resMiembros = ApiClient.apiService.obtenerMiembrosPorMatricula(matricula)
-                if (resMiembros.isSuccessful) {
-                    listaMiembros.clear()
-                    resMiembros.body()?.let { listaMiembros.addAll(it) }
-                }
-
-            } catch (e: Exception) {
-                Log.e("API_ERROR", "Error: ${e.message}")
-                errorMensaje = "Error al conectar con el servidor"
-            } finally {
-                cargando = false
-            }
-        }
-    }
 
     fun cargarPagosMiembro(matricula: String) {
         viewModelScope.launch {
-            cargando = true
             try {
                 val response = ApiClient.apiService.obtenerPagosPorMatricula(matricula)
                 if (response.isSuccessful) {
@@ -118,8 +125,6 @@ class HomeLiderViewModel : ViewModel() {
                 }
             } catch (e: Exception) {
                 Log.e("API_ERROR", "Error historial: ${e.message}")
-            } finally {
-                cargando = false
             }
         }
     }
@@ -129,44 +134,19 @@ class HomeLiderViewModel : ViewModel() {
             try {
                 val pId = proyecto?.id
                 if (pId == null) {
-                    android.widget.Toast.makeText(context, "El proyecto no ha cargado aún", android.widget.Toast.LENGTH_SHORT).show()
+                    android.widget.Toast.makeText(context, "No tienes un proyecto asignado para agregar miembros", android.widget.Toast.LENGTH_SHORT).show()
                     return@launch
                 }
-                
+
                 val response = ApiClient.apiService.registrarMiembro(pId, nuevoMiembro)
                 if (response.isSuccessful) {
                     android.widget.Toast.makeText(context, "¡Miembro registrado correctamente!", android.widget.Toast.LENGTH_SHORT).show()
                     cargarProyecto()
                 } else {
-                    val codigoError = response.code()
                     val errorJson = response.errorBody()?.string() ?: ""
-                    var mensajeReal = "Error desconocido"
-                    try {
-                        val jsonObj = org.json.JSONObject(errorJson)
-                        if (jsonObj.has("error")) {
-                            mensajeReal = jsonObj.getString("error")
-                        } else if (jsonObj.has("message")) {
-                            mensajeReal = jsonObj.getString("message")
-                        } else {
-                            mensajeReal = errorJson
-                        }
-                    } catch (e: Exception) {
-                        mensajeReal = errorJson.takeIf { it.isNotBlank() } ?: "Error $codigoError sin mensaje."
-                    }
-
-                    Log.e("API_DEBUG", "Código: $codigoError | Mensaje real: $mensajeReal")
-
-                    val mensajeAMostrar = when (codigoError) {
-                        403 -> "Acceso Denegado (No tienes permisos o la ruta POST no existe/bloqueada)"
-                        404 -> "Ruta no encontrada en el servidor (Falta el endpoint en el Controller)"
-                        405 -> "Método POST no soportado. Falta @PostMapping en el backend."
-                        else -> mensajeReal.ifBlank { "Error del servidor: $codigoError" }
-                    }
-
-                    android.widget.Toast.makeText(context, mensajeAMostrar, android.widget.Toast.LENGTH_LONG).show()
+                    android.widget.Toast.makeText(context, "Error: $errorJson", android.widget.Toast.LENGTH_LONG).show()
                 }
             } catch (e: Exception) {
-                Log.e("API_ERROR", "Excepción: ${e.message}")
                 android.widget.Toast.makeText(context, "Error de red: ${e.localizedMessage}", android.widget.Toast.LENGTH_SHORT).show()
             }
         }
@@ -188,14 +168,9 @@ class HomeLiderViewModel : ViewModel() {
                         )
                     }
                     android.widget.Toast.makeText(context, "Miembro actualizado correctamente", android.widget.Toast.LENGTH_SHORT).show()
-                    Log.d("API_SUCCESS", "Usuario actualizado con éxito")
-                } else {
-                    android.widget.Toast.makeText(context, "No se pudo actualizar correctamente", android.widget.Toast.LENGTH_SHORT).show()
-                    errorMensaje = "Error al actualizar: ${response.code()}"
                 }
             } catch (e: Exception) {
-                android.widget.Toast.makeText(context, "No se pudo actualizar correctamente", android.widget.Toast.LENGTH_SHORT).show()
-                Log.e("API_ERROR", e.message ?: "Error desconocido")
+                android.widget.Toast.makeText(context, "Error al actualizar", android.widget.Toast.LENGTH_SHORT).show()
             }
         }
     }
@@ -204,12 +179,9 @@ class HomeLiderViewModel : ViewModel() {
         viewModelScope.launch {
             try {
                 val response = ApiClient.apiService.eliminarMiembro(matricula)
-
                 if (response.isSuccessful) {
                     listaMiembros.removeAll { it.matricula == matricula }
                     android.widget.Toast.makeText(context, "Miembro eliminado correctamente", android.widget.Toast.LENGTH_SHORT).show()
-                } else {
-                    android.widget.Toast.makeText(context, "Error al eliminar miembro", android.widget.Toast.LENGTH_SHORT).show()
                 }
             } catch (e: Exception) {
                 android.widget.Toast.makeText(context, "Error de red", android.widget.Toast.LENGTH_SHORT).show()

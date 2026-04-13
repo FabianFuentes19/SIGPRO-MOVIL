@@ -13,6 +13,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -31,13 +32,14 @@ fun HomeMiembroScreen(
     navController: NavController,
     viewModel: HomeMiembroViewModel = viewModel()
 ) {
+
+    val context = LocalContext.current
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
 
     var showLogoutDialog by remember { mutableStateOf(false) }
     var showCambiarPasswordDialog by remember { mutableStateOf(false) }
 
-    // --- CAMBIO: Vinculación con las variables del ViewModel ---
     val usuario = viewModel.miembroDetallado
     val proyecto = viewModel.proyecto
     val cargando = viewModel.cargando
@@ -45,7 +47,6 @@ fun HomeMiembroScreen(
     val azulMarino = Color(0xFF00334E)
     val verdeTurquesa = Color(0xFF009688)
 
-    // --- CAMBIO: Unificación de carga en un solo LaunchedEffect ---
     LaunchedEffect(Unit) {
         viewModel.cargarProyecto()
     }
@@ -64,13 +65,24 @@ fun HomeMiembroScreen(
 
     if (showCambiarPasswordDialog) {
         CambiarContrasenaDialog(
-            onDismiss = { showCambiarPasswordDialog = false },
-            onGuardar = { actual, nueva ->
+            onDismiss = {
                 showCambiarPasswordDialog = false
-            }
+                viewModel.mensajePassword = null
+            },
+            onGuardar = { actual, nueva ->
+                viewModel.actualizarContrasena(actual, nueva) {
+                    showCambiarPasswordDialog = false
+                    android.widget.Toast.makeText(
+                        context,
+                        "Cambio de contraseña exitoso",
+                        android.widget.Toast.LENGTH_SHORT
+                    ).show()
+                }
+            },
+            cargando = viewModel.cargandoPassword,
+            errorDesdeServidor = viewModel.mensajePassword
         )
     }
-
     Scaffold(
         backgroundColor = Color(0xFFF5F5F5),
         topBar = {
@@ -153,7 +165,6 @@ fun HomeMiembroScreen(
                     .padding(16.dp)
                     .verticalScroll(rememberScrollState())
             ) {
-                // 1. CARD: MI PERFIL (Información Real Precargada)
                 Card(
                     shape = RoundedCornerShape(12.dp),
                     elevation = 4.dp,
@@ -189,7 +200,7 @@ fun HomeMiembroScreen(
                                 }
                                 Box(Modifier.weight(1f)) {
                                     InfoLabel(
-                                        label = "GRUPO", // Cambiado a GRUPO según tu ViewModel
+                                        label = "GRUPO",
                                         value = usuario.grupo ?: "-"
                                     )
                                 }
@@ -225,7 +236,6 @@ fun HomeMiembroScreen(
 
                 Spacer(modifier = Modifier.height(20.dp))
 
-                // --- 2. CARD: PROYECTO ASIGNADO (DINÁMICO) ---
                 Card(
                     shape = RoundedCornerShape(12.dp),
                     elevation = 4.dp,
