@@ -6,5 +6,6 @@ data class PagoRequestDTO(
     val proyectoId: Long,
     val matriculaUsuario: String,
     val monto: BigDecimal,
-    val fecha: String? = null
+    val fechaCorte: String, // Cambiado para coincidir con Java
+    val fechaPagoReal: String // Cambiado para coincidir con Java
 )

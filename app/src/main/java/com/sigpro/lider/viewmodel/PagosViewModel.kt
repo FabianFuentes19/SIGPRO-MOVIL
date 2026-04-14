@@ -1,5 +1,6 @@
 package com.sigpro.lider.viewmodels
 
+import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -66,43 +67,53 @@ class PagosViewModel : ViewModel() {
 
     fun registrarPago(nomina: NominaData) {
         viewModelScope.launch {
+            // 1. Crear el request (Asegúrate de que PagoRequestDTO tenga fechaCorte y fechaPagoReal)
             val request = PagoRequestDTO(
                 proyectoId = _proyectoId,
                 matriculaUsuario = nomina.matricula,
                 monto = nomina.monto,
-                fecha = LocalDate.now().toString()
+                fechaCorte = nomina.fecha ?: LocalDate.now().toString(),
+                fechaPagoReal = LocalDate.now().toString()
             )
 
             try {
+                // 2. Llamada al servicio
                 val response = ApiClient.apiService.registrarPago(request)
 
                 if (response.isSuccessful) {
-                    cargarNominas()
-                    val resProyecto = ApiClient.apiService.obtenerProyectoLider()
-                    if (resProyecto.isSuccessful) {
-                        val p = resProyecto.body()
-                        if (p != null) {
-                            val presupuestoBase = if ((p.presupuestoAutorizado ?: 0.0) > 0.0)
-                                p.presupuestoAutorizado!!
-                            else
-                                (p.presupuestoInicial ?: 1.0)
-                            val presupuestoActual = p.presupuesto ?: 0.0
-                            val porcentaje = (presupuestoActual / presupuestoBase) * 100
-
-                            if (porcentaje <= 20) {
-                                mensajeAlerta = if (porcentaje <= 10) {
-                                    "Te queda menos del 10% de presupuesto"
-                                } else {
-                                    "Te queda menos del 20% de presupuesto"
-                                }
-                                colorAlerta = if (porcentaje <= 10) Color(0xFFE53935) else Color(0xFFFFB300)
-                                mostrarAlerta = true
-                            }
-                        }
-                    }
+                    // Si no quieres usar las alertas del back, simplemente ignoramos el body
+                    // y ejecutamos tu lógica manual de presupuesto
+                    actualizarEstadoYPresupuestoManual()
+                    cargarNominas() // Refrescar lista
+                } else {
+                    Log.e("API_ERROR", "Error en registro: ${response.code()}")
                 }
             } catch (e: Exception) {
-                e.printStackTrace()
+                Log.e("API_FAILURE", "Fallo de red", e)
+            }
+        }
+    }
+
+    // Separamos tu lógica de presupuesto en una función limpia
+    private fun actualizarEstadoYPresupuestoManual() {
+        viewModelScope.launch {
+            val resProyecto = ApiClient.apiService.obtenerProyectoLider()
+            if (resProyecto.isSuccessful) {
+                val p = resProyecto.body() ?: return@launch
+
+                val presupuestoBase = if ((p.presupuestoAutorizado ?: 0.0) > 0.0)
+                    p.presupuestoAutorizado!!
+                else
+                    (p.presupuestoInicial ?: 1.0)
+
+                val presupuestoActual = p.presupuesto ?: 0.0
+                val porcentaje = (presupuestoActual / presupuestoBase) * 100
+
+                if (porcentaje <= 20) {
+                    mensajeAlerta = if (porcentaje <= 10) "Menos del 10% de presupuesto" else "Menos del 20% de presupuesto"
+                    colorAlerta = if (porcentaje <= 10) Color(0xFFE53935) else Color(0xFFFFB300)
+                    mostrarAlerta = true
+                }
             }
         }
     }
