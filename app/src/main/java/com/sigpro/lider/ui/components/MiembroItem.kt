@@ -20,7 +20,8 @@ fun MiembroItem(
     onEditar: () -> Unit,
     onBorrar: () -> Unit,
     onDetalles: () -> Unit,
-    onHistorial: () -> Unit
+    onHistorial: () -> Unit,
+    esActivo: Boolean = true
 ) {
     var expanded by remember { mutableStateOf(false) }
 
@@ -66,17 +67,21 @@ fun MiembroItem(
                     expanded = expanded,
                     onDismissRequest = { expanded = false }
                 ) {
-                    DropdownMenuItem(onClick = { expanded = false; onEditar() }) {
-                        Text("Editar")
-                    }
-                    DropdownMenuItem(onClick = { expanded = false; onBorrar() }) {
-                        Text("Borrar")
+                    if (esActivo) {
+                        DropdownMenuItem(onClick = { expanded = false; onEditar() }) {
+                            Text("Editar")
+                        }
                     }
                     DropdownMenuItem(onClick = { expanded = false; onDetalles() }) {
                         Text("Ver detalles")
                     }
                     DropdownMenuItem(onClick = { expanded = false; onHistorial() }) {
                         Text("Ver historial")
+                    }
+                    if (esActivo) {
+                        DropdownMenuItem(onClick = { expanded = false; onBorrar() }) {
+                            Text("Borrar")
+                        }
                     }
                 }
             }

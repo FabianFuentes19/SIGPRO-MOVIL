@@ -45,6 +45,7 @@ fun HomeLiderScreen(
     var showConsultarMiembroDialog by remember { mutableStateOf(false) }
     var showHistorialMiembroDialog by remember { mutableStateOf(false) }
     var miembroSeleccionado by remember { mutableStateOf<UsuarioDTO?>(null) }
+    var selectedTabMiembros by remember { mutableStateOf(0) } // 0: Activos, 1: Anteriores
 
     LaunchedEffect(Unit) {
         viewModel.cargarProyecto()
@@ -226,44 +227,67 @@ fun HomeLiderScreen(
                         }
                     }
                     Spacer(modifier = Modifier.height(16.dp))
+
+                    TabRow(
+                        selectedTabIndex = selectedTabMiembros,
+                        backgroundColor = Color.Transparent,
+                        contentColor = AzulPrimario,
+                        divider = { Divider(color = Color(0xFFE2E8F0)) }
+                    ) {
+                        Tab(
+                            selected = selectedTabMiembros == 0,
+                            onClick = { selectedTabMiembros = 0 },
+                            text = { Text("Activos", fontWeight = if (selectedTabMiembros == 0) FontWeight.Bold else FontWeight.Normal) }
+                        )
+                        Tab(
+                            selected = selectedTabMiembros == 1,
+                            onClick = { selectedTabMiembros = 1 },
+                            text = { Text("Anteriores", fontWeight = if (selectedTabMiembros == 1) FontWeight.Bold else FontWeight.Normal) }
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(16.dp))
                 }
             }
 
             //lista de miembros si hay proyecto asignado
             if (proyecto != null) {
-                if (viewModel.listaMiembros.isEmpty() && !viewModel.cargando) {
+                val listaAMostrar = if (selectedTabMiembros == 0) viewModel.listaMiembros else viewModel.listaMiembrosAnteriores
+                
+                if (listaAMostrar.isEmpty() && !viewModel.cargando) {
                     item {
                         Column(
                             modifier = Modifier.fillMaxWidth().padding(vertical = 40.dp),
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
-                            Text("Aún no hay participantes en el proyecto", fontSize = 16.sp, color = Color.Gray)
+                            Text(
+                                text = if (selectedTabMiembros == 0) "Aún no hay participantes activos" else "No hay miembros anteriores",
+                                fontSize = 16.sp,
+                                color = Color.Gray
+                            )
                         }
                     }
                 } else {
-                    items(viewModel.listaMiembros) { miembro ->
+                    items(listaAMostrar) { miembro ->
                         MiembroItem(
                             nombre = miembro.nombreCompleto ?: "Sin nombre",
                             rol = miembro.puesto ?: "Miembro",
+                            esActivo = selectedTabMiembros == 0,
                             onEditar = {
                                 miembroSeleccionado = miembro
                                 showEditarDialog = true
+                            },
+                            onDetalles = {
+                                viewModel.seleccionarMiembro(miembro)
+                                showConsultarMiembroDialog = true
+                            },
+                            onHistorial = {
+                                miembroSeleccionado = miembro
+                                showHistorialMiembroDialog = true
                             },
                             onBorrar = {
                                 miembroSeleccionado = miembro
                                 showEliminarMiembroDialog = true
                             },
-                            onDetalles = {
-                                if (miembro.matricula.isNotBlank()) {
-                                    viewModel.cargarDetalleMiembro(miembro.matricula) {
-                                        showConsultarMiembroDialog = true
-                                    }
-                                }
-                            },
-                            onHistorial = {
-                                miembroSeleccionado = miembro
-                                showHistorialMiembroDialog = true
-                            }
                         )
                         Spacer(modifier = Modifier.height(12.dp))
                     }
@@ -342,14 +366,8 @@ fun HomeLiderScreen(
         HistorialMiembroDialog(
             nombre = miembroSeleccionado!!.nombreCompleto,
             puesto = miembroSeleccionado!!.puesto,
-            totalAcumulado = String.format("$%,.2f", viewModel.listaPagosMiembro.sumOf { it.monto?.toDouble() ?: 0.0 }),
-
-            listaPagos = viewModel.listaPagosMiembro.map {
-                Pago(
-                    fecha = it.fecha?.toString() ?: "Sin fecha",
-                    monto = "$${String.format("%.2f", it.monto ?: 0.0)}"
-                )
-            },
+            totalAcumulado = String.format("$%,.2f", viewModel.listaPagosMiembro.filter { it.estado == "PAGADO" }.sumOf { it.montoPagado ?: 0.0 }),
+            listaVouchers = viewModel.listaPagosMiembro,
             cargando = viewModel.cargando,
             onDismiss = {
                 showHistorialMiembroDialog = false

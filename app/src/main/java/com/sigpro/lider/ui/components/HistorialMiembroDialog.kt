@@ -2,6 +2,7 @@ package com.sigpro.lider.ui.components
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -19,81 +20,208 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
-
-data class Pago(val fecha: String, val monto: String)
+import com.sigpro.lider.models.VoucherDTO
+import java.util.Locale
 
 @Composable
 fun HistorialMiembroDialog(
     nombre: String,
     puesto: String,
     totalAcumulado: String,
-    listaPagos: List<Pago>,
+    listaVouchers: List<VoucherDTO>,
     cargando: Boolean,
     onDismiss: () -> Unit
 ) {
     val azulMarino = Color(0xFF00334E)
-    val verdeBoton = Color(0xFF00897B)
+    val tealGreen = Color(0xFF00897B)
+    val grisLabel = Color(0xFF94A3B8)
 
     Dialog(onDismissRequest = onDismiss) {
         Surface(
-            shape = RoundedCornerShape(16.dp),
+            shape = RoundedCornerShape(24.dp),
             color = Color.White,
-            modifier = Modifier.fillMaxWidth().fillMaxHeight(0.85f)
+            modifier = Modifier
+                .fillMaxWidth()
+                .fillMaxHeight(0.85f)
         ) {
-            Column(modifier = Modifier.padding(20.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                Text("Historial", fontSize = 32.sp, fontWeight = FontWeight.Bold, color = azulMarino, modifier = Modifier.align(Alignment.Start))
+            Column(
+                modifier = Modifier
+                    .padding(24.dp)
+                    .fillMaxSize()
+            ) {
+                // Título Principal
+                Text(
+                    text = "Historial",
+                    fontSize = 32.sp,
+                    fontWeight = FontWeight.ExtraBold,
+                    color = azulMarino,
+                    modifier = Modifier.padding(bottom = 24.dp)
+                )
 
-                Spacer(Modifier.height(24.dp))
-
-                // Perfil del miembro
-                Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                    Box(Modifier.size(80.dp).background(verdeBoton, CircleShape), contentAlignment = Alignment.Center) {
-                        Icon(Icons.Default.Person, null, tint = Color.White, modifier = Modifier.size(50.dp))
+                // Sección de Perfil
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    // Avatar Circular
+                    Box(
+                        modifier = Modifier
+                            .size(72.dp)
+                            .background(tealGreen, CircleShape),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Person,
+                            contentDescription = null,
+                            tint = Color.White,
+                            modifier = Modifier.size(40.dp)
+                        )
                     }
-                    Spacer(Modifier.width(16.dp))
+                    
+                    Spacer(modifier = Modifier.width(16.dp))
+                    
                     Column {
-                        Text(nombre, fontWeight = FontWeight.Bold, fontSize = 18.sp)
-                        Text(puesto, fontSize = 14.sp, color = Color.Gray)
-                        Text("Total acumulado", fontSize = 12.sp, color = Color.Gray, modifier = Modifier.padding(top = 8.dp))
-                        Text(totalAcumulado, color = verdeBoton, fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                        Text(
+                            text = nombre,
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.Black
+                        )
+                        Text(
+                            text = puesto,
+                            fontSize = 14.sp,
+                            color = grisLabel
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = "Total acumulado",
+                            fontSize = 12.sp,
+                            color = grisLabel
+                        )
+                        Text(
+                            text = totalAcumulado,
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = tealGreen
+                        )
                     }
                 }
 
-                Spacer(Modifier.height(24.dp))
-                Divider()
-                Spacer(Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(24.dp))
+                Divider(color = Color(0xFFF1F5F9), thickness = 1.dp)
+                Spacer(modifier = Modifier.height(24.dp))
 
-                Text("Historial de pagos", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = azulMarino, modifier = Modifier.align(Alignment.Start))
+                // Historial de pagos
+                Text(
+                    text = "Historial de pagos",
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = azulMarino,
+                    modifier = Modifier.padding(bottom = 16.dp)
+                )
 
-                // Área de contenido con Loader
-                Box(modifier = Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) {
+                Box(modifier = Modifier.fillMaxWidth().weight(1f)) {
                     if (cargando) {
-                        CircularProgressIndicator(color = verdeBoton)
-                    } else if (listaPagos.isEmpty()) {
-                        Text("No hay pagos registrados todavía", color = Color.Gray, textAlign = TextAlign.Center)
+                        CircularProgressIndicator(
+                            modifier = Modifier.align(Alignment.Center),
+                            color = tealGreen
+                        )
+                    } else if (listaVouchers.isEmpty()) {
+                        Text(
+                            text = "No hay registros de pagos aún",
+                            color = grisLabel,
+                            modifier = Modifier.align(Alignment.Center),
+                            textAlign = TextAlign.Center
+                        )
                     } else {
-                        LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(vertical = 12.dp)) {
-                            items(listaPagos) { pago ->
-                                Card(elevation = 4.dp, shape = RoundedCornerShape(12.dp), modifier = Modifier.padding(vertical = 6.dp).fillMaxWidth()) {
-                                    Row(Modifier.padding(16.dp), horizontalArrangement = Arrangement.SpaceBetween) {
-                                        Column {
-                                            Text("FECHA DE PAGO", fontSize = 10.sp, color = Color.Gray)
-                                            Text(pago.fecha, fontWeight = FontWeight.Bold, fontSize = 14.sp)
-                                        }
-                                        Column(horizontalAlignment = Alignment.End) {
-                                            Text("MONTO", fontSize = 10.sp, color = Color.Gray)
-                                            Text(pago.monto, fontWeight = FontWeight.Bold, fontSize = 16.sp, color = verdeBoton)
-                                        }
-                                    }
-                                }
+                        LazyColumn(
+                            modifier = Modifier.fillMaxSize(),
+                            verticalArrangement = Arrangement.spacedBy(12.dp),
+                            contentPadding = PaddingValues(bottom = 16.dp)
+                        ) {
+                            items(listaVouchers) { voucher ->
+                                CardPago(voucher)
                             }
                         }
                     }
                 }
 
-                Spacer(Modifier.height(16.dp))
-                OutlinedButton(onClick = onDismiss, modifier = Modifier.fillMaxWidth(0.5f).height(45.dp), border = BorderStroke(1.dp, verdeBoton), shape = RoundedCornerShape(12.dp)) {
-                    Text("Cerrar", color = verdeBoton, fontWeight = FontWeight.Bold)
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Botón Cerrar
+                Box(
+                    modifier = Modifier.fillMaxWidth(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    OutlinedButton(
+                        onClick = onDismiss,
+                        modifier = Modifier
+                            .fillMaxWidth(0.6f)
+                            .height(48.dp),
+                        shape = RoundedCornerShape(12.dp),
+                        border = BorderStroke(1.dp, tealGreen),
+                        colors = ButtonDefaults.outlinedButtonColors(contentColor = tealGreen)
+                    ) {
+                        Text(
+                            text = "Cerrar",
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun CardPago(voucher: VoucherDTO) {
+    val grisLabel = Color(0xFF94A3B8)
+    
+    Card(
+        shape = RoundedCornerShape(16.dp),
+        elevation = 0.dp,
+        modifier = Modifier
+            .fillMaxWidth()
+            .border(1.dp, Color(0xFFF1F5F9), RoundedCornerShape(16.dp))
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                // Izquierda: Fecha
+                Column {
+                    Text(
+                        text = "FECHA DE PAGO",
+                        fontSize = 10.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = grisLabel
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = voucher.fechaPagoReal ?: voucher.fechaFin,
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.Black
+                    )
+                }
+
+                // Derecha: Monto
+                Column(horizontalAlignment = Alignment.End) {
+                    Text(
+                        text = "MONTO",
+                        fontSize = 10.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = grisLabel
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = "$${String.format(Locale.US, "%,.2f", if (voucher.estado == "PAGADO") (voucher.montoPagado ?: 0.0) else voucher.montoEsperado)}",
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.Black
+                    )
                 }
             }
         }

@@ -13,18 +13,20 @@ import com.sigpro.lider.models.PagoResponseDTO
 import com.sigpro.lider.models.ProyectoResponseDTO
 import com.sigpro.lider.models.UsuarioDTO
 import com.sigpro.lider.models.UsuarioRequestDTO
+import com.sigpro.lider.models.VoucherDTO
 import com.sigpro.lider.session.SessionManager
 import kotlinx.coroutines.launch
 
 class HomeLiderViewModel : ViewModel() {
     var proyecto by mutableStateOf<ProyectoResponseDTO?>(null)
     var listaMiembros = mutableStateListOf<UsuarioDTO>()
+    var listaMiembrosAnteriores = mutableStateListOf<UsuarioDTO>()
     var listaPagos = mutableStateListOf<PagoResponseDTO>()
     var listaMateriales = mutableStateListOf<MaterialResponseDTO>()
 
     var miembroDetallado by mutableStateOf<UsuarioDTO?>(null)
         private set
-    var listaPagosMiembro = mutableStateListOf<PagoResponseDTO>()
+    var listaPagosMiembro = mutableStateListOf<VoucherDTO>()
         private set
 
     var cargando by mutableStateOf(false)
@@ -80,8 +82,12 @@ class HomeLiderViewModel : ViewModel() {
 
                         val resMiembros = ApiClient.apiService.obtenerMiembrosPorMatricula(matricula)
                         if (resMiembros.isSuccessful) {
+                            val todos = resMiembros.body() ?: emptyList()
                             listaMiembros.clear()
-                            resMiembros.body()?.let { listaMiembros.addAll(it) }
+                            listaMiembrosAnteriores.clear()
+                            
+                            listaMiembros.addAll(todos.filter { it.estado != "INACTIVO" })
+                            listaMiembrosAnteriores.addAll(todos.filter { it.estado == "INACTIVO" })
                         }
                     }
                 } else {
@@ -102,6 +108,7 @@ class HomeLiderViewModel : ViewModel() {
 
     fun cargarDetalleMiembro(matricula: String, onListo: () -> Unit) {
         viewModelScope.launch {
+            miembroDetallado = null // Limpiar previo para asegurar recomposición
             try {
                 val response = ApiClient.apiService.obtenerPerfil(matricula)
                 if (response.isSuccessful) {
@@ -114,16 +121,23 @@ class HomeLiderViewModel : ViewModel() {
         }
     }
 
+    fun seleccionarMiembro(miembro: UsuarioDTO) {
+        miembroDetallado = miembro
+    }
+
     fun cargarPagosMiembro(matricula: String) {
         viewModelScope.launch {
+            cargando = true
             try {
-                val response = ApiClient.apiService.obtenerPagosPorMatricula(matricula)
+                val response = ApiClient.apiService.obtenerVouchersMiembro(matricula)
                 if (response.isSuccessful) {
                     listaPagosMiembro.clear()
                     response.body()?.let { listaPagosMiembro.addAll(it) }
                 }
             } catch (e: Exception) {
-                Log.e("API_ERROR", "Error historial: ${e.message}")
+                Log.e("API_ERROR", "Error historial vouchers: ${e.message}")
+            } finally {
+                cargando = false
             }
         }
     }

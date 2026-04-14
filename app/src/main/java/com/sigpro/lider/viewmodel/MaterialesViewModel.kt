@@ -60,30 +60,34 @@ class MaterialesViewModel : ViewModel() {
                 val response = ApiClient.apiService.registrarMaterial(nuevoMaterial)
 
                 if (response.isSuccessful) {
-                    // se recarga materiales
-                    cargarMateriales(proyectoId)
-                    val resProyecto = ApiClient.apiService.obtenerProyectoLider()
-                    if (resProyecto.isSuccessful) {
-                        val p = resProyecto.body()
-                        if (p != null) {
-                            val presupuestoBase = if ((p.presupuestoAutorizado ?: 0.0) > 0.0)
-                                p.presupuestoAutorizado!!
-                            else
-                                (p.presupuestoInicial ?: 1.0)
-                            val presupuestoActual = p.presupuesto ?: 0.0
-                            val porcentaje = (presupuestoActual / presupuestoBase) * 100
+                    val body = response.body()
 
-                            if (porcentaje <= 20) {
-                                mensajeAlerta = if (porcentaje <= 10) {
-                                    "Te queda menos del 10% de presupuesto"
-                                } else {
-                                    "Te queda menos del 20% de presupuesto"
+                    if (body?.alerta != null) {
+                        val al = body.alerta
+                        mensajeAlerta = al.mensaje
+                        colorAlerta = if (al.tipo == "CRITICAL") Color(0xFFE53935) else Color(0xFFFFB300)
+                        mostrarAlerta = true
+                    } else {
+                        // Respaldo manual (reutilizamos tu lógica)
+                        val resProyecto = ApiClient.apiService.obtenerProyectoLider()
+                        if (resProyecto.isSuccessful) {
+                            val p = resProyecto.body()
+                            if (p != null) {
+                                val presupuestoBase = if ((p.presupuestoAutorizado ?: 0.0) > 0.0)
+                                    p.presupuestoAutorizado!!
+                                else
+                                    (p.presupuestoInicial ?: 1.0)
+                                val presupuestoActual = p.presupuesto ?: 0.0
+                                val porcentaje = (presupuestoActual / presupuestoBase) * 100
+                                if (porcentaje <= 20) {
+                                    mensajeAlerta = if (porcentaje <= 10) "Te queda menos del 10%" else "Te queda menos del 20%"
+                                    colorAlerta = if (porcentaje <= 10) Color(0xFFE53935) else Color(0xFFFFB300)
+                                    mostrarAlerta = true
                                 }
-                                colorAlerta = if (porcentaje <= 10) Color(0xFFE53935) else Color(0xFFFFB300)
-                                mostrarAlerta = true
                             }
                         }
                     }
+                    cargarMateriales(proyectoId)
                     Toast.makeText(context, "¡Material registrado!", Toast.LENGTH_SHORT).show()
                 }
             } catch (e: Exception) {

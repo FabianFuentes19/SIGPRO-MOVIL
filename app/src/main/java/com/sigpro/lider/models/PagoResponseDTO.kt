@@ -5,5 +5,6 @@ data class PagoResponseDTO(
     val proyectoId: Long,
     val matriculaUsuario: String,
     val monto: Double,
-    val fecha: String
+    val fechaCorte: String,
+    val fechaPagoReal: String
 )

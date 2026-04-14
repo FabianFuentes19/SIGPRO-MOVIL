@@ -10,9 +10,13 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sigpro.lider.api.ApiClient
 import com.sigpro.lider.models.PagoRequestDTO
+import com.sigpro.lider.models.VoucherDTO
 import com.sigpro.lider.ui.screens.NominaData
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.launch
 import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 
 class PagosViewModel : ViewModel() {
 
@@ -23,6 +27,7 @@ class PagosViewModel : ViewModel() {
     var mostrarAlerta by mutableStateOf(false)
     var mensajeAlerta by mutableStateOf("")
     var colorAlerta by mutableStateOf(Color(0xFFFFB300))
+    val listaVouchers = mutableStateListOf<VoucherDTO>()
 
     fun cargarNominas() {
         viewModelScope.launch {
@@ -35,27 +40,46 @@ class PagosViewModel : ViewModel() {
                     _proyectoId = resProyecto.body()?.id ?: 1L
                 }
 
-                val resMiembros = ApiClient.apiService.obtenerMiembrosPorMatricula(matricula)
-                val resPagos = ApiClient.apiService.consultarPagosProyecto()
+                val resEquipo = ApiClient.apiService.obtenerEquipoCompleto()
+                if (resEquipo.isSuccessful) {
+                    val equipo = resEquipo.body() ?: emptyList()
+                    val hoy = LocalDate.now()
 
-                if (resMiembros.isSuccessful) {
-                    val miembros = resMiembros.body() ?: emptyList()
-                    val pagos = if (resPagos.isSuccessful) resPagos.body() ?: emptyList() else emptyList()
+                    // Consultar vouchers en paralelo para cada integrante del equipo (incluyendo líder)
+                    val todasNominas = equipo.map { integrante ->
+                        viewModelScope.async {
+                            try {
+                                val resVouchers = ApiClient.apiService.obtenerVouchersMiembro(integrante.matricula)
+                                if (resVouchers.isSuccessful) {
+                                    val vouchers = resVouchers.body() ?: emptyList()
+                                    // Filtrar vouchers: PAGADOS o PENDIENTES ya vencidos
+                                    vouchers.filter { v ->
+                                        val cleanerDate = v.fechaFin?.split(" ")?.get(0) ?: ""
+                                        val fFin = try { LocalDate.parse(cleanerDate) } catch(e:Exception) { null }
+                                        val estaPagado = v.estado.equals("PAGADO", ignoreCase = true)
+                                        val yaVencio = fFin != null && (hoy.isAfter(fFin) || hoy.isEqual(fFin))
+                                        estaPagado || yaVencio
+                                    }.map { v ->
+                                        NominaData(
+                                            id = integrante.id?.toInt() ?: 0,
+                                            nombre = integrante.nombreCompleto,
+                                            matricula = integrante.matricula,
+                                            puesto = integrante.puesto,
+                                            voucher = "V-${v.pagoId ?: v.numeroQuincena}",
+                                            monto = (v.montoPagado ?: v.montoEsperado).toBigDecimal(),
+                                            fecha = v.fechaFin ?: hoy.toString(),
+                                            isPagado = v.estado.equals("PAGADO", ignoreCase = true)
+                                        )
+                                    }
+                                } else emptyList()
+                            } catch (e: Exception) {
+                                Log.e("PagosViewModel", "Error cargando vouchers de ${integrante.matricula}: ${e.message}")
+                                emptyList()
+                            }
+                        }
+                    }.awaitAll().flatten()
 
-                    val nuevasNominas = miembros.mapIndexed { index, miembro ->
-                        val pagado = pagos.any { it.matriculaUsuario == miembro.matricula }
-                        NominaData(
-                            id = miembro.id?.toInt() ?: index,
-                            nombre = miembro.nombreCompleto,
-                            matricula = miembro.matricula,
-                            puesto = miembro.puesto,
-                            voucher = "V-${miembro.id ?: index}",
-                            monto = miembro.salarioQuincenal.toBigDecimal(),
-                            fecha = LocalDate.now().toString(),
-                            isPagado = pagado
-                        )
-                    }
-                    _listaNominas.addAll(nuevasNominas)
+                    _listaNominas.addAll(todasNominas)
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
@@ -67,7 +91,6 @@ class PagosViewModel : ViewModel() {
 
     fun registrarPago(nomina: NominaData) {
         viewModelScope.launch {
-            // 1. Crear el request (Asegúrate de que PagoRequestDTO tenga fechaCorte y fechaPagoReal)
             val request = PagoRequestDTO(
                 proyectoId = _proyectoId,
                 matriculaUsuario = nomina.matricula,
@@ -77,13 +100,21 @@ class PagosViewModel : ViewModel() {
             )
 
             try {
-                // 2. Llamada al servicio
                 val response = ApiClient.apiService.registrarPago(request)
 
                 if (response.isSuccessful) {
-                    // Si no quieres usar las alertas del back, simplemente ignoramos el body
-                    // y ejecutamos tu lógica manual de presupuesto
-                    actualizarEstadoYPresupuestoManual()
+                    val body = response.body()
+                    
+                    // Si el back trae alertas, las usamos prioritariamente
+                    if (body?.alerta != null) {
+                        val al = body.alerta
+                        mensajeAlerta = al.mensaje
+                        colorAlerta = if (al.tipo == "CRITICAL") Color(0xFFE53935) else Color(0xFFFFB300)
+                        mostrarAlerta = true
+                    } else {
+                        actualizarEstadoYPresupuestoManual()
+                    }
+                    
                     cargarNominas() // Refrescar lista
                 } else {
                     Log.e("API_ERROR", "Error en registro: ${response.code()}")
@@ -94,7 +125,43 @@ class PagosViewModel : ViewModel() {
         }
     }
 
-    // Separamos tu lógica de presupuesto en una función limpia
+    fun cargarVouchers(matricula: String) {
+        viewModelScope.launch {
+            cargando = true
+            listaVouchers.clear()
+            try {
+                // Obtener fecha fin del proyecto
+                val resProy = ApiClient.apiService.obtenerProyectoLider()
+                val fechaFinProy = resProy.body()?.fechaFin
+                
+                val response = ApiClient.apiService.obtenerPagosPorMatricula(matricula)
+                if (response.isSuccessful) {
+                    val pagos = response.body() ?: emptyList()
+                    
+                    // Mapeo de Pagos Reales a VoucherDTO para la UI del Historial
+                    val historial = pagos.mapIndexed { index, p ->
+                        VoucherDTO(
+                            numeroQuincena = index + 1,
+                            fechaInicio = p.fechaCorte,
+                            fechaFin = p.fechaCorte,
+                            montoEsperado = p.monto,
+                            estado = "PAGADO",
+                            pagoId = p.id,
+                            fechaPagoReal = p.fechaPagoReal,
+                            montoPagado = p.monto,
+                            puesto = ""
+                        )
+                    }
+                    listaVouchers.addAll(historial)
+                }
+            } catch (e: Exception) {
+                Log.e("VOUCHERS_ERROR", e.message ?: "Error desconocido")
+            } finally {
+                cargando = false
+            }
+        }
+    }
+
     private fun actualizarEstadoYPresupuestoManual() {
         viewModelScope.launch {
             val resProyecto = ApiClient.apiService.obtenerProyectoLider()

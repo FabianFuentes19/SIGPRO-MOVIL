@@ -10,8 +10,8 @@ data class ProyectoResponseDTO(
     @SerializedName("presupuesto") val presupuesto: Double?,
     @SerializedName("presupuestoInicial") val presupuestoInicial: Double?,
     @SerializedName("presupuestoAutorizado") val presupuestoAutorizado: Double?,
-    @SerializedName("fechaInicio") val fechaInicio: Any?,
-    @SerializedName("fechaFin") val fechaFin: Any?,
+    @SerializedName("fechaInicio") val fechaInicio: String?,
+    @SerializedName("fechaFin") val fechaFin: String?,
     @SerializedName("estado") val estado: String?,
     @SerializedName("miembros") val miembros: List<UsuarioDTO>? = emptyList()
 )

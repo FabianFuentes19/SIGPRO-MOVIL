@@ -1,14 +1,13 @@
 package com.sigpro.miembro.ui.screens
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Payments
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -20,7 +19,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
-import com.sigpro.lider.models.PagoResponseDTO
+import com.sigpro.lider.models.VoucherDTO
 import com.sigpro.lider.ui.theme.*
 import com.sigpro.lider.viewmodel.NominasMiembroViewModel
 import java.util.Locale
@@ -53,7 +52,7 @@ fun NominasMiembroScreen(
                     icon = { Icon(Icons.Default.Payments, contentDescription = null) },
                     label = { Text("Nóminas") },
                     selected = currentRoute == "nominas_miembro",
-                    onClick = { /* Estamos aquí */ }
+                    onClick = {}
                 )
                 BottomNavigationItem(
                     icon = { Icon(Icons.Default.Person, contentDescription = null) },
@@ -77,7 +76,7 @@ fun NominasMiembroScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(vertical = 16.dp),
-                placeholder = { Text("Buscar por fecha o folio", color = Color.Gray) },
+                placeholder = { Text("Buscar por quincena o estado", color = Color.Gray) },
                 leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = Color.Gray) },
                 shape = RoundedCornerShape(12.dp),
                 colors = TextFieldDefaults.outlinedTextFieldColors(
@@ -90,7 +89,7 @@ fun NominasMiembroScreen(
                 Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     CircularProgressIndicator(color = AzulPrimario)
                 }
-            } else if (viewModel.listaPagos.isEmpty()) {
+            } else if (viewModel.listaVouchers.isEmpty()) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Icon(
@@ -109,19 +108,11 @@ fun NominasMiembroScreen(
                         )
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(
-                            text = "Por el momento no tienes nóminas registradas.\nEn cuanto se procese tu primer pago, podrás consultarlo aquí.",
+                            text = "Por el momento no se han generado registros.\nEn cuanto se inicie tu primer periodo de pago, podrás consultarlo aquí.",
                             style = MaterialTheme.typography.body2,
                             color = Color.Gray,
                             textAlign = TextAlign.Center
                         )
-                        Button(
-                            onClick = { viewModel.cargarNominas() },
-                            modifier = Modifier.padding(top = 24.dp),
-                            colors = ButtonDefaults.buttonColors(backgroundColor = AzulPrimario),
-                            shape = RoundedCornerShape(20.dp)
-                        ) {
-                            Text("Actualizar", color = Color.White)
-                        }
                     }
                 }
             } else {
@@ -129,12 +120,13 @@ fun NominasMiembroScreen(
                     verticalArrangement = Arrangement.spacedBy(12.dp),
                     contentPadding = PaddingValues(bottom = 20.dp)
                 ) {
-                    val filteredList = viewModel.listaPagos.filter {
-                        it.id.toString().contains(searchQuery) || it.fecha.contains(searchQuery)
+                    val filteredList = viewModel.listaVouchers.filter {
+                        it.numeroQuincena.toString().contains(searchQuery) || 
+                        it.estado.lowercase().contains(searchQuery.lowercase())
                     }
 
-                    items(filteredList) { pago ->
-                        CardNominaReal(pago)
+                    items(filteredList) { voucher ->
+                        CardVoucher(voucher)
                     }
                 }
             }
@@ -143,7 +135,12 @@ fun NominasMiembroScreen(
 }
 
 @Composable
-fun CardNominaReal(pago: PagoResponseDTO) {
+fun CardVoucher(voucher: VoucherDTO) {
+    val azulMarino = Color(0xFF00334E)
+    val verdeBoton = Color(0xFF00897B)
+    val naranjaPendiente = Color(0xFFFFA000)
+    val esPagado = voucher.estado == "PAGADO"
+
     Card(
         shape = RoundedCornerShape(12.dp),
         elevation = 4.dp,
@@ -156,21 +153,21 @@ fun CardNominaReal(pago: PagoResponseDTO) {
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "FOLIO #${pago.id}",
+                    text = "QUINCENA #${voucher.numeroQuincena}",
                     fontSize = 12.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color.Gray
                 )
                 Surface(
-                    color = Color(0xFFE0F2F1),
+                    color = if (esPagado) Color(0xFFE0F2F1) else Color(0xFFFFF3E0),
                     shape = RoundedCornerShape(16.dp)
                 ) {
                     Text(
-                        text = "DEPÓSITO",
-                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
-                        fontSize = 10.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color(0xFF00796B)
+                        text = voucher.estado,
+                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.ExtraBold,
+                        color = if (esPagado) Color(0xFF00796B) else Color(0xFFE65100)
                     )
                 }
             }
@@ -179,21 +176,17 @@ fun CardNominaReal(pago: PagoResponseDTO) {
                 text = "PAGO NÓMINA",
                 fontSize = 18.sp,
                 fontWeight = FontWeight.ExtraBold,
-                color = AzulPrimario,
+                color = azulMarino,
                 modifier = Modifier.padding(vertical = 4.dp)
             )
 
             Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(Icons.Default.CalendarToday, null, modifier = Modifier.size(14.dp), tint = Color.Gray)
+                Spacer(Modifier.width(6.dp))
                 Text(
-                    text = "Fecha de emisión: ",
+                    text = "${voucher.fechaInicio} al ${voucher.fechaFin}",
                     fontSize = 13.sp,
-                    color = Color.Gray
-                )
-                Text(
-                    text = pago.fecha,
-                    fontSize = 13.sp,
-                    color = Color.DarkGray,
-                    fontWeight = FontWeight.Medium
+                    color = Color.DarkGray
                 )
             }
 
@@ -204,18 +197,26 @@ fun CardNominaReal(pago: PagoResponseDTO) {
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
-                    text = "Monto Neto",
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Medium,
-                    color = Color.Black
-                )
-                Text(
-                    text = "$${String.format(Locale.US, "%,.2f", pago.monto)}",
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.ExtraBold,
-                    color = Color(0xFF2E7D32)
-                )
+                Column {
+                    Text(
+                        text = if (esPagado) "Monto Recibido" else "Monto Esperado",
+                        fontSize = 13.sp,
+                        color = Color.Gray
+                    )
+                    Text(
+                        text = "$${String.format(Locale.US, "%,.2f", if (esPagado) (voucher.montoPagado ?: 0.0) else voucher.montoEsperado)}",
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.ExtraBold,
+                        color = if (esPagado) Color(0xFF2E7D32) else azulMarino
+                    )
+                }
+                
+                if (esPagado) {
+                    Column(horizontalAlignment = Alignment.End) {
+                        Text("FECHA DE PAGO", fontSize = 10.sp, color = Color.Gray)
+                        Text(voucher.fechaPagoReal ?: "-", fontWeight = FontWeight.Bold, fontSize = 13.sp, color = verdeBoton)
+                    }
+                }
             }
         }
     }

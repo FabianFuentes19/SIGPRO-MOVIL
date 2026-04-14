@@ -204,7 +204,7 @@ fun PerfilLideresScreen(
                     items(listaPagos) { pago ->
                         ItemHistorial(
                             titulo = "Nómina Quincenal",
-                            fecha = pago.fecha,
+                            fecha = pago.fechaPagoReal,
                             monto = "$${pago.monto}"
                         )
                         Spacer(modifier = Modifier.height(8.dp))
